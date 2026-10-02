@@ -1,42 +1,35 @@
-"use client";
-import { useEffect } from 'react';
-import { usePathname } from 'next/navigation';
-function SessionActivity() {
-  const pathname = usePathname();
-  useEffect(() => {
-    if (pathname === '/admin' || pathname === '/admin/setup') return;
-    let lastActivity = Date.now();
-    let lastSent = 0;
-    let idleTimer: ReturnType<typeof setTimeout>;
-    let stopped = false;
-    const expire = async () => {
-      stopped = true;
-      try { await fetch('/api/auth/logout', {method:'POST'}); }
-      finally { window.location.replace('/admin?reason=inactive'); }
-    };
-    const activity = () => {
-      lastActivity = Date.now();
-      clearTimeout(idleTimer);
-      idleTimer = setTimeout(expire, 15*60*1000);
-    };
-    const events = ['pointerdown','pointermove','keydown','touchstart','scroll'];
-    events.forEach(event => window.addEventListener(event,activity,{passive:true}));
-    activity();
-    const timer = setInterval(async () => {
-      if (stopped || document.hidden || lastActivity <= lastSent) return;
-      lastSent = lastActivity;
-      try {
-        const response = await fetch('/api/auth/heartbeat', {method:'POST',headers:{'x-session-activity':'1'}});
-        if (response.status === 401) { stopped=true; window.location.replace('/admin?reason=expired'); }
-      } catch { /* A temporary network failure is retried after the next activity. */ lastSent=0; }
-    }, 60*1000);
-    return () => { stopped=true; clearTimeout(idleTimer); clearInterval(timer); events.forEach(event=>window.removeEventListener(event,activity)); };
-  }, [pathname]);
-  return null;
-}
+import "./globals.css";
+import PwaRegister from "./PwaRegister";
+import type { Metadata, Viewport } from "next";
 
-// Keep activity tracking here so the admin layout needs no companion import.
-export const dynamic = 'force-dynamic';
-export default function AdminLayout({children}:{children:React.ReactNode}) {
-  return <><SessionActivity />{children}</>;
+export const metadata: Metadata = {
+  title: "House of Ezra Giving | Give With Purpose",
+  description: "Give with purpose and support the work of House of Ezra Worldwide Ministries — Jehovah Adonai Assembly.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    shortcut: ["/favicon.ico"],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
+  appleWebApp: {
+    capable: true,
+    title: "House of Ezra Giving",
+    statusBarStyle: "default",
+  },
+  manifest: "/manifest.webmanifest",
+  applicationName: "House of Ezra Giving",
+  formatDetection: { telephone: false },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#0a3555",
+};
+
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  return <html lang="en"><body>{children}<PwaRegister /></body></html>;
 }
