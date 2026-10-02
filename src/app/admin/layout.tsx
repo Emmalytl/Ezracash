@@ -1,4 +1,5 @@
 "use client";
+import "./dashboard-theme.css";
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 function SessionActivity() {

@@ -178,7 +178,6 @@ export default function Home() {
         <div className={styles.heroOverlay} />
         <div className={`${styles.shell} ${styles.heroContent}`}>
           <div className={styles.heroCopy}>
-<div className={styles.eyebrow}>HOUSE OF EZRA · GIVING</div>
 <h2 className={styles.heroBrandTitle}>HOUSE OF EZRA GIVING</h2>
 <div className={styles.heroMarquee}>
   <div className={styles.heroMarqueeTrack}>
