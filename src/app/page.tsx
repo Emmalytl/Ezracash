@@ -5,7 +5,7 @@ import { useEffect, useState, useRef } from "react";
 import dynamic from "next/dynamic";
 import styles from "./page.module.css";
 import GivingSelector from "../components/GivingSelector";
-import { Heart, ArrowUpRight, Sprout, Church } from "lucide-react";
+import { Heart, Sprout, Church } from "lucide-react";
 import type { Campaign } from "../lib/data";
 
 const StripePaymentForm = dynamic(() => import("../components/StripePaymentForm"), { ssr: false });
@@ -153,6 +153,11 @@ export default function Home() {
     return () => { document.body.style.overflow = previousOverflow; document.removeEventListener("keydown", onKey); previous?.focus(); };
   }, [modal]);
 
+  // Feature missions separately; the grid keeps each remaining campaign once.
+  const featuredCampaign = campaignsData.find(c => c.status === "active" && c.category.toUpperCase() === "MISSIONS")
+    || campaignsData.find(c => c.status === "active" && c.category.toUpperCase() !== "BUILDING" && c.image && !c.image.includes("church-auditorium"));
+  const gridCampaigns = campaignsData.filter(c => c.id !== featuredCampaign?.id);
+
   return (
     <main className={styles.page}>
       <header className={styles.header}>
@@ -188,14 +193,15 @@ export default function Home() {
               <button className={styles.outlineButton} onClick={scrollToFundraising}>Explore Our Fundraising</button>
             </div>
           </div>
-<aside className={styles.heroInvitation}>
-  <span className={styles.invitationIcon}><Heart size={25} strokeWidth={1.5}/></span>
-  <div className={styles.eyebrow}>FAITH IN ACTION</div>
-  <h2>Small acts of generosity.<br />Meaningful change.</h2>
-  <p>Choose a cause close to your heart, or support the ministry with a tithe or offering.</p>
-  <button onClick={() => openGive()}>Find your way to give <ArrowUpRight size={18}/></button>
-  <small>One-time gifts · Monthly giving</small>
-</aside>
+          <div className={styles.purposeOrb} aria-hidden="true">
+            <div className={styles.orbitRing}>
+              <svg className={styles.circularMarquee} viewBox="0 0 350 350" focusable="false">
+                <defs><path id="giving-orbit" d="M 175 9 A 166 166 0 1 1 174.99 9" /></defs>
+                <text textLength="1030" lengthAdjust="spacing"><textPath href="#giving-orbit">GIVE • SERVE • BUILD • REACH • GROW • GIVE • SERVE • BUILD • REACH • GROW • </textPath></text>
+              </svg>
+            </div>
+            <div className={styles.orbCore}><small>HOUSE OF EZRA</small><strong>GIVE<br />WITH<br /><em>PURPOSE</em></strong><span>✦</span></div>
+          </div>
 
 </div>
 </section>
@@ -205,6 +211,26 @@ export default function Home() {
   <div><Heart size={24}/><span><strong>Care for our community</strong><small>Compassion that reaches beyond our walls.</small></span></div>
   <div><Sprout size={24}/><span><strong>Invest in the next generation</strong><small>Help young people grow in faith.</small></span></div>
 </div></section>
+      {featuredCampaign && <section className={styles.featuredWrap} aria-label="Featured campaign">
+        <div className={styles.shell}>
+          <article className={styles.featured}>
+            <div className={styles.featuredImage} style={{backgroundImage:`url(${featuredCampaign.image})`}}>
+              <span className={styles.featuredTag}>FEATURED CAMPAIGN</span>
+            </div>
+            <div className={styles.featuredContent}>
+              <div className={styles.smallLabel}>{featuredCampaign.category}</div>
+              <h2>{featuredCampaign.title}</h2>
+              <p>{featuredCampaign.description}</p>
+              <div className={styles.featureProgress}>
+                <div className={styles.featureNumbers}><strong>{money(featuredCampaign.amount)} <small>raised of {money(featuredCampaign.goal)}</small></strong><span>{progress(featuredCampaign)}%</span></div>
+                <div className={styles.progressLine}><span style={{width:`${progress(featuredCampaign)}%`}}/></div>
+              </div>
+              <button className={styles.goldButton} onClick={()=>openCampaign(featuredCampaign)}>View Campaign <span>→</span></button>
+            </div>
+          </article>
+        </div>
+      </section>}
+
       <section className={styles.campaigns} id="fundraising">
         <div className={styles.shell}>
           <div className={styles.sectionHead}>
@@ -212,8 +238,8 @@ export default function Home() {
             <span className={styles.sectionHint}>Choose a campaign to see details and give.</span>
           </div>
           {campaignsData.length === 0 && <p>{campaignError || "There are no campaigns to display right now. You can still give a general offering."}</p>}
-          <div className={styles.campaignGrid}>
-            {campaignsData.map((campaign) => {
+          <div className={`${styles.campaignGrid} ${gridCampaigns.length === 4 ? styles.fourCampaigns : ""}`}>
+            {gridCampaigns.map((campaign) => {
 const percent = progress(campaign);
 return (
   <button className={styles.campaignCard} key={campaign.id} onClick={() => openCampaign(campaign)}>
