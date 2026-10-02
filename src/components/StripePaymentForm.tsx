@@ -5,7 +5,7 @@ import { loadStripe, type StripeExpressCheckoutElementConfirmEvent } from '@stri
 
 const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 const stripePromise = publishableKey ? loadStripe(publishableKey, {developerTools:{assistant:{enabled:false}}}) : null;
-type Props = {clientSecret:string;donationId:string;amount:string;onSuccess:()=>void};
+type Props = {clientSecret:string;donationId:string;amount:string;onSuccess:()=>void;onBusyChange?:(busy:boolean)=>void};
 type Shared = Props & {busy:boolean; acquire:()=>boolean; release:()=>void; fail:(message:string)=>void};
 
 function Wallet({clientSecret,onSuccess,acquire,release,fail}:Shared) {
@@ -22,7 +22,7 @@ function Wallet({clientSecret,onSuccess,acquire,release,fail}:Shared) {
     } catch(error){const message=error instanceof Error?error.message:'Wallet payment could not be completed.';fail(message);event.paymentFailed({message});}
     finally{release();}
   }
-  return <div style={{marginBottom:20}}><label className="card-entry-label">Apple Pay or Google Pay</label><ExpressCheckoutElement options={{buttonHeight:50,buttonType:{applePay:'donate',googlePay:'donate'},paymentMethods:{applePay:'always',googlePay:'always',link:'never',paypal:'never',amazonPay:'never',klarna:'never'}}} onReady={event=>setAvailable(Boolean(event.availablePaymentMethods?.applePay||event.availablePaymentMethods?.googlePay))} onConfirm={confirm}/><small className="formNote" aria-live="polite">{available===null ? "Checking wallet availability…" : available ? "Or enter your card details below." : "Apple Pay and Google Pay are unavailable in this browser right now. You can use your card below."}</small></div>;
+  return <div className="wallet-entry"><span className="card-entry-label">Apple Pay or Google Pay</span><ExpressCheckoutElement options={{buttonHeight:44,buttonType:{applePay:'donate',googlePay:'donate'},paymentMethods:{applePay:'always',googlePay:'always',link:'never',paypal:'never',amazonPay:'never',klarna:'never'}}} onReady={event=>setAvailable(Boolean(event.availablePaymentMethods?.applePay||event.availablePaymentMethods?.googlePay))} onConfirm={confirm}/><small className="formNote" aria-live="polite">{available===null ? "Checking wallet availability…" : available ? "Or donate with your card below." : "Wallet buttons appear on supported devices and browsers. You can use your card below."}</small></div>;
 }
 function Card({clientSecret,amount,onSuccess,busy,acquire,release,fail}:Shared){
   const stripe=useStripe(); const elements=useElements(); const [complete,setComplete]=useState(false);
@@ -38,11 +38,11 @@ function Card({clientSecret,amount,onSuccess,busy,acquire,release,fail}:Shared){
     }catch(error){fail(error instanceof Error?error.message:'Payment could not be completed.');}
     finally{release();}
   }
-  return <><label className="card-entry-label">Card details</label><CardElement onChange={event=>{setComplete(event.complete);fail(event.error?.message||'');}} options={{disableLink:true,hidePostalCode:false,style:{base:{fontSize:'16px',color:'#183e59',fontFamily:'Arial, sans-serif','::placeholder':{color:'#899ca9'}},invalid:{color:'#a53737'}}}}/><button className="fullGoldButton" type="button" disabled={!stripe||!complete||busy} onClick={submit}>{busy?'Processing…':`Send payment · ${amount}`} <span>→</span></button></>;
+  return <div className="card-entry"><span className="card-entry-label">Card details</span><CardElement onChange={event=>{setComplete(event.complete);fail(event.error?.message||'');}} options={{disableLink:true,hidePostalCode:false,style:{base:{fontSize:'16px',color:'#183e59',fontFamily:'Arial, sans-serif','::placeholder':{color:'#899ca9'}},invalid:{color:'#a53737'}}}}/><button className="fullGoldButton" type="button" disabled={!stripe||!complete||busy} onClick={submit}>{busy?'Processing…':`Donate · ${amount}`} <span>→</span></button></div>;
 }
 export default function StripePaymentForm(props:Props){
   const lock=useRef(false);const [busy,setBusy]=useState(false);const [error,setError]=useState('');
-  const shared={...props,busy,acquire:()=>{if(lock.current)return false;lock.current=true;setBusy(true);setError('');return true;},release:()=>{lock.current=false;setBusy(false);},fail:setError};
+  const shared={...props,busy,acquire:()=>{if(lock.current)return false;lock.current=true;setBusy(true);props.onBusyChange?.(true);setError('');return true;},release:()=>{lock.current=false;setBusy(false);props.onBusyChange?.(false);},fail:setError};
   const options={clientSecret:props.clientSecret};
   // Separate Element groups let wallets submit without validating an empty card field.
   return <div className="stripe-checkout"><Elements stripe={stripePromise} options={options}><Wallet {...shared}/></Elements><Elements stripe={stripePromise} options={options}><Card {...shared}/></Elements>{error&&<div className="payment-error" role="alert">{error}</div>}<small className="formNote">Your payment is encrypted. House of Ezra does not store your card number or security code.</small></div>;

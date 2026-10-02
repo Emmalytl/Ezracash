@@ -1,0 +1,21 @@
+EZRACASH - SIMPLE PAYMENT MODAL
+
+Update based on GitHub main commit 5bb6a19.
+
+INSTALL
+Extract this ZIP. Copy the src folder into the root of your existing Ezracash project, replacing the three matching files. Keep their folder paths. Commit and push to the GitHub repository connected to Vercel; Vercel will build the update.
+
+WHAT CHANGED
+- Payment method heading and accessible Card / Zelle dropdown.
+- Compact gift summary and responsive checkout spacing.
+- Card selection includes genuine Apple Pay / Google Pay buttons when supported by the device, browser and payment configuration.
+- One Donate button for card entry. Switching methods and closing are blocked while a payment is being submitted.
+- Switching Card to Zelle and back reuses the current prepared checkout instead of creating another payment intent.
+- Zelle clearly shows setup required because no official recipient is configured. It does not accept or automatically confirm a Zelle donation.
+- PayPal and Venmo tiles are removed from this donor modal. Their existing backend and admin settings remain in the project.
+
+VERIFICATION
+npm run build passed, including all 7 admin route checks.
+npm test passed all 67 existing checks (mocked payment/database checks).
+Real wallet device tests and real processor transactions were not performed.
+This ZIP is an update package, not a full standalone project. It has not been deployed by the assistant.

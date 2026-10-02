@@ -5,10 +5,9 @@ import { useEffect, useState, useRef } from "react";
 import dynamic from "next/dynamic";
 import styles from "./page.module.css";
 import GivingSelector from "../components/GivingSelector";
-import { Heart, ArrowUpRight, Sprout, Church } from "lucide-react";
+import { Heart, ArrowUpRight, Sprout, Church, ChevronDown, CreditCard } from "lucide-react";
 import type { Campaign } from "../lib/data";
 
-const PayPalSandboxCheckout = dynamic(() => import("../components/PayPalSandboxCheckout"), { ssr: false });
 const StripePaymentForm = dynamic(() => import("../components/StripePaymentForm"), { ssr: false });
 
 
@@ -37,6 +36,9 @@ export default function Home() {
   const [donorEmail, setDonorEmail] = useState("");
   const [clientSecret, setClientSecret] = useState("");
   const [paymentLoading, setPaymentLoading] = useState(false);
+  const [checkoutBusy, setCheckoutBusy] = useState(false);
+  const checkoutBusyRef = useRef(false);
+  const onCheckoutBusy = (busy: boolean) => { checkoutBusyRef.current = busy; setCheckoutBusy(busy); };
   const [paymentError, setPaymentError] = useState("");
   const [receiptToken, setReceiptToken] = useState("");
   const [confirmedGift, setConfirmedGift] = useState<any>(null);
@@ -144,7 +146,7 @@ export default function Home() {
     document.body.style.overflow = "hidden";
     dialogRef.current?.focus();
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") { event.preventDefault(); setModal(null); return; }
+      if (event.key === "Escape") { event.preventDefault(); if (!checkoutBusyRef.current) setModal(null); return; }
       if (event.key !== "Tab") return;
       const nodes = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), input, select, a[href], iframe, [tabindex="0"]') || []).filter(node => node.getClientRects().length);
       const first = nodes[0], last = nodes[nodes.length - 1];
@@ -295,9 +297,9 @@ return (
 
       {process.env.NEXT_PUBLIC_STRIPE_CUSTOMER_PORTAL_URL?.startsWith('https://billing.stripe.com/') && <div className={styles.manageGiving}><a href={process.env.NEXT_PUBLIC_STRIPE_CUSTOMER_PORTAL_URL}>Manage or cancel monthly giving →</a></div>}
       {modal && (
-        <div className={styles.modalBackdrop} onMouseDown={(e) => { if (e.target === e.currentTarget) setModal(null); }}>
+        <div className={styles.modalBackdrop} onMouseDown={(e) => { if (e.target === e.currentTarget && !checkoutBusyRef.current) setModal(null); }}>
           <div ref={dialogRef} tabIndex={-1} className={styles.modal} role="dialog" aria-modal="true" aria-label={modal === "give" ? "Give now" : modal === "payment" ? "Payment" : selected.title}>
-            <button className={styles.closeButton} onClick={() => setModal(null)} aria-label="Close">×</button>
+            <button className={styles.closeButton} disabled={checkoutBusy} onClick={() => setModal(null)} aria-label="Close">×</button>
             {modal === "campaign" ? (
               <>
                 <div className={styles.modalImage} style={{ backgroundImage: `url(${selected.image})` }} />
@@ -326,55 +328,44 @@ return (
 <small className={styles.formNote}>Your gift is in USD. Review your details before payment.</small>
               </div>
             ) : (
-              <div className={styles.modalContent}>
+              <div className={`${styles.modalContent} ${styles.paymentContent}`}>
                 <div className={styles.paymentTop}>
-                  <button className={styles.backButton} disabled={paymentComplete || paymentLoading} type="button" onClick={() => setModal("give")}>← Back</button>
+                  <button className={styles.backButton} disabled={paymentComplete || paymentLoading || checkoutBusy} type="button" onClick={() => setModal("give")}>← Back</button>
                   <div className={styles.modalKicker}>HOUSE OF EZRA GIVING</div>
                 </div>
-                <h2>Choose Payment</h2>
-                <p className={styles.modalIntro}>Complete your {frequency.toLowerCase()} gift of <strong>{money(amount || 0)}</strong> to {selected?.title || "House of Ezra"}.</p>
-                <div className={styles.checkoutSummary}><span>Your gift · USD</span><strong>{money(amount || 0)}</strong></div>
-                {paymentMethod === "Card" && providerConfig?.stripe?.mode === "test" && <div className={styles.paymentNotice}>TEST MODE · Cards, Apple Pay and Google Pay use test credentials. No real donation is collected.</div>}
-                <div className={styles.methodChoices} aria-label="Payment method">
-                  {["Card", "PayPal", "Venmo"].map(method => (
-                    <button type="button" key={method} aria-pressed={paymentMethod === method} disabled={paymentLoading || paymentComplete || (method === "PayPal" && !providerConfig?.paypal?.configured) || (method === "Venmo" && !providerConfig?.venmo?.configured)} className={`${styles.methodChoice} ${paymentMethod === method ? styles.methodSelected : ""}`} onClick={() => { setPaymentMethod(method); setClientSecret(""); setPaymentError(""); setPaymentComplete(false); if (["Card", "Apple Pay", "Google Pay"].includes(method)) void startStripePayment(method); }}>
-                      <span className={styles.methodRadio} aria-hidden="true"/><span className={styles.methodName}>{method}<small>{method === "Card" ? (providerConfig?.stripe?.mode === "test" ? "Card & wallets · Test mode" : "Debit or credit card") : providerConfig?.[method.toLowerCase()]?.configured ? "Test mode · no real money" : "Sandbox setup required"}</small></span><span className={styles.methodSymbol} aria-hidden="true">{method === "Card" ? "▰" : method === "PayPal" ? "P" : method === "Cash App" ? "$" : "→"}</span>
-                    </button>
-                  ))}
+                <h2>Payment method</h2>
+                <div className={styles.checkoutSummary}><span><b>{selected?.title || "House of Ezra"}</b><small>{frequency} gift · USD</small></span><strong>{money(amount || 0)}</strong></div>
+                <div className={styles.paymentMethodField}>
+                  <label htmlFor="payment-method">How would you like to give?</label>
+                  <div className={styles.paymentSelectWrap}>
+                    <CreditCard size={20} aria-hidden="true" />
+                    <select id="payment-method" value={paymentMethod} disabled={paymentLoading || paymentComplete || checkoutBusy} onChange={event => {
+                      const method = event.target.value;
+                      setPaymentMethod(method); setPaymentError("");
+                      if (method === "Card" && !clientSecret) void startStripePayment("Card");
+                    }}>
+                      <option value="Card">Card</option>
+                      <option value="Zelle">Zelle</option>
+                    </select>
+                    <ChevronDown size={18} aria-hidden="true" />
+                  </div>
                 </div>
-
-                {(paymentMethod === "PayPal" || paymentMethod === "Venmo") && providerConfig?.paypal?.clientId ? (
-                  <PayPalSandboxCheckout key={paymentMethod} clientId={providerConfig.paypal.clientId} method={paymentMethod} gift={{amount,donation_type:givingType,campaign_id:givingCampaignId||null,donor_name:donorName||"Anonymous",donor_email:donorEmail,frequency}} />
-                ) : (paymentMethod === "Card" || paymentMethod === "Apple Pay" || paymentMethod === "Google Pay") ? (
-                  paymentComplete ? <section className={styles.confirmationPanel} aria-live="polite"><div className={styles.confirmationMark}>{confirmedGift?.status === 'completed' ? '✓' : '…'}</div><h3>{confirmedGift?.status === 'completed' ? 'Your gift is confirmed' : confirmedGift?.status === 'failed' ? 'Payment not confirmed' : 'Confirming your gift'}</h3><p>{confirmedGift?.status === 'completed' ? 'Thank you for supporting the ministry. Your donation has been recorded.' : confirmedGift?.status === 'failed' ? 'The ministry record reports that this payment failed. Contact the ministry if your bank shows a charge.' : 'Your payment has been submitted. We are waiting for the payment confirmation. Please do not pay again.'}</p><strong>{money(amount)} USD</strong>{confirmationError && <p role="alert">{confirmationError}</p>}{confirmedGift?.status === 'completed' ? <button type="button" className={styles.fullGoldButton} onClick={downloadReceipt}>Download receipt ↓</button> : <button type="button" className={styles.backButton} onClick={checkConfirmation}>Check confirmation</button>}</section> : clientSecret ? <StripePaymentForm clientSecret={clientSecret} donationId="" amount={money(amount || 0)} onSuccess={()=>setPaymentComplete(true)} /> : <div className={styles.paymentPanel}>
-                    <div className={styles.paymentPanelHead}>
-<div><span className={styles.paymentPanelLabel}>SECURE CARD CHECKOUT</span><strong>{paymentMethod}</strong></div>
-                      <span className={styles.paymentStatus}>Available</span>
-                    </div>
-                    <p className={styles.modalIntro}>
-                      {paymentMethod === "Card"
-                        ? "Pay securely with your debit or credit card. Your payment details are encrypted; House of Ezra never stores your card number or security code."
-                        : `Choose ${paymentMethod} to use an eligible wallet at secure checkout. Availability depends on your device, browser and wallet setup.`}
-                    </p>
-                    <button className={styles.fullGoldButton} type="button" disabled={paymentLoading} onClick={() => void startStripePayment()}>{paymentLoading ? "Preparing secure checkout…" : `Continue with ${paymentMethod}`} <span>→</span></button>
+                {paymentMethod === "Card" && providerConfig?.stripe?.mode === "test" && <div className={styles.paymentNotice}>Test mode · No real donation is collected.</div>}
+                {paymentMethod === "Card" ? (
+                  paymentComplete ? <section className={styles.confirmationPanel} aria-live="polite"><div className={styles.confirmationMark}>{confirmedGift?.status === 'completed' ? '✓' : '…'}</div><h3>{confirmedGift?.status === 'completed' ? 'Your gift is confirmed' : confirmedGift?.status === 'failed' ? 'Payment not confirmed' : 'Confirming your gift'}</h3><p>{confirmedGift?.status === 'completed' ? 'Thank you for supporting the ministry. Your donation has been recorded.' : confirmedGift?.status === 'failed' ? 'The ministry record reports that this payment failed. Contact the ministry if your bank shows a charge.' : 'Your payment has been submitted. We are waiting for the payment confirmation. Please do not pay again.'}</p><strong>{money(amount)} USD</strong>{confirmationError && <p role="alert">{confirmationError}</p>}{confirmedGift?.status === 'completed' ? <button type="button" className={styles.fullGoldButton} onClick={downloadReceipt}>Download receipt ↓</button> : <button type="button" className={styles.backButton} onClick={checkConfirmation}>Check confirmation</button>}</section> : clientSecret ? <StripePaymentForm clientSecret={clientSecret} donationId="" amount={money(amount || 0)} onBusyChange={onCheckoutBusy} onSuccess={()=>setPaymentComplete(true)} /> : <div className={styles.paymentPanel}>
+                    <p className={styles.modalIntro}>Use your card, or donate with Apple Pay or Google Pay on a supported device.</p>
+                    <button className={styles.fullGoldButton} type="button" disabled={paymentLoading} onClick={() => void startStripePayment("Card")}>{paymentLoading ? "Preparing secure checkout…" : "Try card checkout again"} <span>→</span></button>
                     {paymentError&&<div className="payment-error" role="alert">{paymentError}</div>}
                   </div>
-                ) : paymentMethod === "Zelle" ? (
-                  <div className={styles.paymentPanel}>
-                    <div className={styles.paymentPanelHead}><div><span className={styles.paymentPanelLabel}>ZELLE</span><strong>Give directly through your bank</strong></div><span className={styles.paymentStatus}>Manual</span></div>
-                    <p className={styles.modalIntro}>Open your bank or credit-union app, choose Zelle, and send your gift using the ministry's official Zelle recipient details. Keep your confirmation for your records. Zelle does not use the Stripe checkout.</p>
-                    <div className={styles.paymentSteps}><span><b>1</b> Open your banking app</span><span><b>2</b> Select Zelle</span><span><b>3</b> Enter the ministry's official Zelle details</span><span><b>4</b> Send the gift and keep the confirmation</span></div>
-                    <div className={styles.paymentNotice}>The official Zelle recipient information will be displayed here once it is configured by the ministry.</div>
-                  </div>
                 ) : (
-                  <div className={styles.paymentPanel}>
-                    <div className={styles.paymentPanelHead}><div><span className={styles.paymentPanelLabel}>{paymentMethod.toUpperCase()}</span><strong>{paymentMethod} checkout</strong></div><span className={styles.paymentStatus}>Setup required</span></div>
-                    <p className={styles.modalIntro}>Your selected payment method will use this same House of Ezra giving flow. The {paymentMethod} merchant connection has not been activated yet, so no payment will be requested from you at this time.</p>
-                    <div className={styles.paymentSteps}><span><b>1</b> Select {paymentMethod}</span><span><b>2</b> Review your gift amount</span><span><b>3</b> Continue when the provider connection is activated</span></div>
-                  </div>
+                  <section className={styles.zellePanel} aria-live="polite">
+                    <span className={styles.paymentStatus}>Setup required</span>
+                    <h3>Give with Zelle</h3>
+                    <p>The ministry’s Zelle recipient details haven’t been configured yet. Please choose Card to complete your gift.</p>
+                    <button type="button" className={styles.backButton} onClick={() => { setPaymentMethod("Card"); if (!clientSecret) void startStripePayment("Card"); }}>Use Card instead →</button>
+                  </section>
                 )}
 
-                <small className={styles.formNote}>Your gift is processed securely. House of Ezra does not store card numbers or security codes.</small>
               </div>
             )}
           </div>
