@@ -4,10 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && npm run test:routes",
     "start": "next start",
     "test": "node tests/payment-security.cjs && node tests/monthly-giving.cjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:routes": "node tests/admin-route-smoke.cjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
