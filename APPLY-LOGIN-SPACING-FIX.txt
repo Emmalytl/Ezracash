@@ -1,0 +1,11 @@
+COMPACT, RESPONSIVE LOGIN
+
+Only src/app/admin/signin-card.module.css changes. Keep your current working page.tsx.
+
+The card has less vertical padding, a smaller logo, closer section spacing and shorter fields/buttons with usable touch targets. Phone inputs use 16px text. Width and height breakpoints handle narrow phones and short/landscape screens; the page scrolls naturally when content cannot fit. Safe-area spacing is preserved for phone screen cutouts.
+
+Replace the CSS file at exactly src/app/admin/signin-card.module.css in your actual repository. Commit and push main, then wait for Vercel to deploy.
+
+Or open https://github.com/Emmalytl/Ezracash/edit/main/src/app/admin/signin-card.module.css and replace ALL the CSS with the code from this ZIP, then commit.
+
+Production build and all 7 admin-route checks passed against main b76010c with this stylesheet change. Graphical desktop/mobile verification remains pending after deployment. Login logic, campaigns, accounts, database records and payment settings are unchanged. This patch has not been uploaded or deployed by the assistant.
