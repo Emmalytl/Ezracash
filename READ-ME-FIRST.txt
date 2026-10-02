@@ -1,0 +1,8 @@
+Replace the four matching files by copying src into the existing repository. Commit and push; wait for Vercel Ready. No database reset is required.
+
+Card-only secure Stripe field replaces the extra Stripe payment menu. Main choices are Card, PayPal, Cash App; the latter two are disabled until connected. Amount, email and campaign validation occur before entering checkout. Escape closes the modal.
+
+LIVE SETUP (performed privately in your own dashboards):
+Set STRIPE_SECRET_KEY to the live key from the intended receiving account, and NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY to the matching live publishable key. Configure a live Stripe webhook destination https://ezracash.vercel.app/api/payments/stripe/webhook for payment_intent.succeeded, payment_intent.payment_failed, payment_intent.canceled. Set its signing secret as STRIPE_WEBHOOK_SECRET in Vercel Production. Redeploy after saving all variables. Confirm Stripe account activation and payout details. Existing test records are not deleted by this patch.
+
+No live charge, payout or authenticated admin verification has been performed.

@@ -1,0 +1,20 @@
+HOUSE OF EZRA GIVING — USER MANAGEMENT V13
+
+Use the existing Administrator account. Do NOT run /admin/setup again.
+
+Login: https://ezracash.vercel.app/admin
+
+After deploying this version:
+1. Sign in with the existing Administrator account.
+2. Open User Management in the sidebar.
+3. Create Staff accounts.
+4. If no System Developer exists yet, the Administrator can create the one-time System Developer account.
+5. Once a Developer exists, only the System Developer can create/manage Developer and Administrator accounts.
+6. Every account uses the same /admin login and is routed by its database role.
+
+Role routing:
+- developer -> /admin/developer
+- administrator -> /admin/administrator
+- staff -> /admin/staff/dashboard
+
+No database setup/reset is required.

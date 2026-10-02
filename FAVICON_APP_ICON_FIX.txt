@@ -1,0 +1,7 @@
+Favicon + Add-to-Home-Screen icon fix
+- Added src/app/favicon.ico so Next.js serves a real browser favicon.
+- Added src/app/icon.png and src/app/apple-icon.png using the House of Ezra emblem.
+- Updated metadata to include favicon.ico, shortcut icon, and Apple touch icon.
+- Updated PWA manifest with standalone display, scope, and any/maskable icons.
+- Updated public PWA icons to use the clean emblem-only square icon rather than the full wordmark.
+- Existing v29 design and application features remain unchanged.

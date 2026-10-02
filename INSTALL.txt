@@ -1,0 +1,7 @@
+Extract this ZIP first. Copy the entire src folder into the ROOT of your Ezracash GitHub Desktop repository and choose Replace files. Do not copy both route.ts files into one folder.
+
+Required paths:
+src/app/api/campaigns/route.ts -- GET and POST; no id route parameter
+src/app/api/campaigns/[id]/route.ts -- PATCH and DELETE; id route parameter
+
+Open GitHub Desktop, review these two paths, commit and push. This repair does not change the database or environment variables.

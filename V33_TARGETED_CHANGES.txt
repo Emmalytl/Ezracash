@@ -1,0 +1,3 @@
+V33 is based on the V29 design and preserves its landing-page layout and styling.
+Targeted changes only: exact uploaded auditorium banner image, responsive House of Ezra logo sizing, House of Ezra footer label changed to semantic H3 with tagline beneath, root public assets for Next.js favicon/logo/banner delivery, and the V30 expense receipt TypeScript fix.
+No new landing-page redesign.

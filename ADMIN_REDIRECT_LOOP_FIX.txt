@@ -1,0 +1,7 @@
+ADMIN REDIRECT LOOP FIX
+
+This build removes the middleware layer entirely. The /admin login page does not perform authentication redirects. Protected admin workspaces perform server-side role checks after authentication.
+
+This prevents an /admin -> /admin redirect loop caused by stale or conflicting middleware.
+
+No database reset is required. Do not run /admin/setup.

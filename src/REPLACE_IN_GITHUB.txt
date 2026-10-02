@@ -1,0 +1,17 @@
+HOUSE OF EZRA GIVING — V12
+
+This version uses ONE login page at:
+https://ezracash.vercel.app/admin
+
+Do NOT use /admin/login.
+
+After login, the server/database role routes the user to:
+- developer -> /admin/developer
+- administrator -> /admin/administrator
+- staff -> /admin/staff/dashboard
+
+IMPORTANT BUILD FIX:
+app/admin/page.tsx intentionally imports ./ui, and app/admin/ui.tsx is included.
+Replace BOTH files in GitHub. Do not keep an older app/admin/page.tsx.
+
+Do not run the first-time database setup again. Keep the existing database and Administrator account.

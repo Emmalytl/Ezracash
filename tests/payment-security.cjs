@@ -1,0 +1,38 @@
+const assert = require('node:assert/strict');
+const crypto = require('node:crypto');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const ts = require('typescript');
+function load(file) {
+  const source=ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,esModuleInterop:true}}).outputText;
+  const context={exports:{},require,Buffer,process};vm.runInNewContext(source,context);return context.exports;
+}
+const {verifyStripeSignature:verify}=load('src/lib/payments/stripe.ts');
+const secret='test-secret';const payload='{"id":"evt_test"}';const timestamp=Math.floor(Date.now()/1000);
+const signature=crypto.createHmac('sha256',secret).update(`${timestamp}.${payload}`).digest('hex');
+assert.equal(verify(payload,`t=${timestamp},v1=${signature}`,secret),true);
+assert.equal(verify(payload+' ',`t=${timestamp},v1=${signature}`,secret),false);
+assert.equal(verify(payload,`t=${timestamp-600},v1=${signature}`,secret),false);
+assert.equal(verify(payload,`t=NaN,v1=${signature}`,secret),false);
+assert.equal(verify(payload,`t=${timestamp},v1=${'é'.repeat(64)}`,secret),false);
+assert.equal(verify(payload,`t=${timestamp},v1=bad,v1=${signature}`,secret),true);
+const {receiptBytes}=load('src/lib/receipts.ts');
+assert.equal(Buffer.from(receiptBytes('\\x25504446')).toString(),'%PDF');
+assert.equal(Buffer.from(receiptBytes({data:[37,80,68,70]})).toString(),'%PDF');
+assert.throws(()=>receiptBytes('invalid'));
+const previousSecret=process.env.ADMIN_SESSION_SECRET;
+process.env.ADMIN_SESSION_SECRET='receipt-regression-secret';
+const {createReceiptToken,verifyReceiptToken}=load('src/lib/payments/receipt-token.ts');
+const donationId='12345678-1234-1234-1234-123456789abc';
+const token=createReceiptToken(donationId);
+assert.equal(verifyReceiptToken(token),donationId);
+assert.equal(verifyReceiptToken(token.replace(donationId,'87654321-1234-1234-1234-123456789abc')),null);
+assert.equal(verifyReceiptToken(token+'.extra'),null);
+assert.equal(verifyReceiptToken('malformed'),null);
+const oldPayload=donationId+'.1';
+const oldSignature=crypto.createHmac('sha256',process.env.ADMIN_SESSION_SECRET).update('donation-receipt:'+oldPayload).digest('hex');
+assert.equal(verifyReceiptToken(oldPayload+'.'+oldSignature),null);
+process.env.ADMIN_SESSION_SECRET='rotated-secret';
+assert.equal(verifyReceiptToken(token),null);
+if(previousSecret===undefined) delete process.env.ADMIN_SESSION_SECRET; else process.env.ADMIN_SESSION_SECRET=previousSecret;
+console.log('Passed 15 signature, receipt and confirmation-token regression checks.');

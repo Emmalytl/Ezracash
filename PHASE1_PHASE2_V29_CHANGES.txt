@@ -1,0 +1,24 @@
+HOUSE OF EZRA GIVING — PHASE 1 + PHASE 2 v29
+
+Landing page updates
+- Replaced the landing-page hero/banner background with the supplied modern House of Ezra auditorium image.
+- Added optimized local asset: src/public/branding/church-auditorium-banner.webp
+- Increased “HOUSE OF EZRA GIVING” to a prominent H2-sized hero heading.
+- Updated the public address to: 6030 Highway 85, Suite 206, Riverdale, GA 30274.
+- Reformatted the footer ministry tagline so “House of Ezra” appears on its own line and “(The place where Jesus lives)” appears directly beneath it.
+
+Admin finance updates
+- Expense records now support an optional receipt attachment.
+- Receipts can be uploaded as PDF or image files.
+- Mobile users get a dedicated “Take photo” camera capture control.
+- Receipt limit is 4 MB.
+- Receipts are stored in a dedicated PostgreSQL expense_receipts table; existing expenses and existing database data are preserved.
+- Authorized administrators, developers and staff can open attached receipts from the expense ledger.
+- Receipt files are served through an authenticated route and are not public URLs.
+- Staff expense entry supports the same receipt upload/camera workflow.
+- Receipt presence is shown in the expense ledger.
+
+No /admin/setup action is required. No existing database tables are reset or recreated; migrations use CREATE TABLE IF NOT EXISTS.
+
+Important deployment note
+- The application could not be locally production-built in this environment because npm dependency installation timed out. The code package is prepared for the existing Vercel/Next.js 15 project, but the final build must still be verified by Vercel after pushing.

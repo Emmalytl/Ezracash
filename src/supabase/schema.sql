@@ -1,0 +1,1 @@
+-- Supabase is no longer used. See database/schema.sql for the Neon/Vercel Postgres schema.

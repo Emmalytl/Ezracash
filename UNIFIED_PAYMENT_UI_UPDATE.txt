@@ -1,0 +1,18 @@
+HOUSE OF EZRA GIVING — UNIFIED PAYMENT UI UPDATE
+
+This package is based on the supplied Ezracash project and preserves the existing V29 landing-page design, branding, admin system, database/payment APIs, and working Stripe integration.
+
+Payment UI change:
+- Replaced the seven payment-method tiles in the public giving payment modal with one clean Payment Method dropdown.
+- Methods: Card, Apple Pay, Google Pay, PayPal, Cash App, Venmo, Zelle.
+- Card / Apple Pay / Google Pay continue through the existing Stripe PaymentElement flow.
+- Apple Pay / Google Pay availability is determined by Stripe, device, browser, and wallet eligibility.
+- PayPal / Cash App / Venmo display clear setup-required information without pretending they are connected.
+- Zelle displays a manual bank/Zelle workflow and does not use Stripe.
+- No existing Stripe API routes, webhook handling, Neon donation logic, admin dashboard, or campaign logic were changed.
+- No Paystack or Mobile Money integration is included.
+
+Important:
+- This is a UI/flow update only for the public giving payment selection.
+- Do not replace existing Vercel environment variables.
+- Do not run /admin/setup.
