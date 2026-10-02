@@ -1,23 +1,32 @@
-# Fix the /admin redirect loop
+# Restore the floating Install app control
 
-Based on GitHub main commit 3c351a8. Only src/app/admin/page.tsx changes.
+Based on GitHub main commit 636f98a.
 
-The uploaded /admin page contained the Staff dashboard wrapper, which redirects signed-out visitors back to /admin. Restore the included public login page. Staff wrappers belong under src/app/admin/staff/, not at the root login route.
+## Install this patch
+Copy the two files from this ZIP into the matching paths in your existing GitHub checkout:
+- src/app/PwaRegister.tsx
+- src/app/pwa.module.css
+Commit and push, then wait for Vercel deployment. No database or environment-variable changes are required.
 
-## Apply using GitHub Desktop
-1. Extract this ZIP.
-2. Copy its src folder into the root of your existing Ezracash GitHub checkout, merging folders and replacing src/app/admin/page.tsx.
-3. GitHub Desktop should show exactly ONE changed source file: src/app/admin/page.tsx.
-4. Commit and push to main. Vercel will build the new commit.
+## Behaviour
+The floating Install app button appears on the landing page for visitors using browser mode. An old permanent dismissal flag no longer hides it. It stays above the mobile navigation and below giving/payment overlays. It is hidden inside the installed standalone app and after installation is accepted. It is absent from administrator, staff and developer pages.
 
-## Apply using GitHub's website
-Open https://github.com/Emmalytl/Ezracash/edit/main/src/app/admin/page.tsx
-Replace ALL existing content with the included src/app/admin/page.tsx file, then commit. Do not paste it into any Staff route.
+On iPhone/iPad (including iPad desktop mode and iOS third-party browsers), installation instructions open ONLY after the visitor taps the button. They explain Safari → Share → Add to Home Screen → Add, keeping Open as Web App enabled when available. No instructions appear automatically.
 
-The approved login CSS, dashboards, database, payment integrations and build regression test remain unchanged.
+Other devices use the browser's native prompt when it is available. If the browser does not provide one, the click opens general browser-menu instructions, never the iOS guide. A declined prompt does not permanently remove the control.
 
-## Validation
-- npm run build passed production compilation, type checking and all 7 admin-route checks.
-- npm test passed 67 automated checks. Provider and database tests are mocked.
-- git diff --check passed.
-- This patch has not been pushed or deployed by the assistant. Authenticated browser login and real provider sandbox checkout were not tested.
+## Verify after deployment
+1. Normal browser: load the landing page and confirm the floating button is visible.
+2. iPhone/iPad: no automatic guide; tap the button and check the iOS steps. Close using Got it, X, outside the dialog or Escape where available.
+3. Android/desktop Chrome or Edge: tap Install app and complete the native prompt when offered. If unavailable, check the general instructions.
+4. Launch from an installed app icon: the button should be hidden in standalone mode.
+5. Open /admin: the install button should be absent and the approved login unchanged.
+
+## Validation actually completed
+Production build, type checking, and all 7 admin-route checks passed. git diff --check passed. Existing manifest, icons, service worker and payments are unchanged.
+
+Graphical verification could not run: the browser rejected the local preview with ERR_BLOCKED_BY_CLIENT. Real iOS/Android installation and deployed appearance remain unverified. This patch has not been pushed or deployed by the assistant.
+
+Official installation guidance:
+https://support.apple.com/en-eg/guide/iphone/iphea86e5236/ios
+https://developer.mozilla.org/en-US/docs/Web/API/BeforeInstallPromptEvent/prompt
