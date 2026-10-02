@@ -196,10 +196,7 @@ export default function Home() {
   <button onClick={() => openGive()}>Find your way to give <ArrowUpRight size={18}/></button>
   <small>One-time gifts · Monthly giving</small>
 </aside>
-<div className={styles.purposeOrb} aria-hidden="true">
-  <div className={styles.orbitRing}><span>GIVE • SERVE • BUILD • REACH • GROW • </span></div>
-  <div className={styles.orbCore}><small>HOUSE OF EZRA</small><strong>GIVE<br />WITH<br /><em>PURPOSE</em></strong><span>✦</span></div>
-</div>
+
 </div>
 </section>
 
@@ -208,26 +205,6 @@ export default function Home() {
   <div><Heart size={24}/><span><strong>Care for our community</strong><small>Compassion that reaches beyond our walls.</small></span></div>
   <div><Sprout size={24}/><span><strong>Invest in the next generation</strong><small>Help young people grow in faith.</small></span></div>
 </div></section>
-      {campaignsData[0] && <section className={styles.featuredWrap}>
-        <div className={styles.shell}>
-          <article className={styles.featured}>
-            <div className={styles.featuredImage} style={{ backgroundImage: `url(${campaignsData[0].image || "/branding/church-auditorium-banner.png"})` }}>
-              <span className={styles.featuredTag}>FEATURED CAMPAIGN</span>
-            </div>
-            <div className={styles.featuredContent}>
-              <div className={styles.smallLabel}>{campaignsData[0].category}</div>
-              <h2>{campaignsData[0].title}</h2>
-              <p>{campaignsData[0].description}</p>
-              <div className={styles.featureProgress}>
-<div className={styles.featureNumbers}><strong>{money(campaignsData[0].amount)} <small>raised of {money(campaignsData[0].goal)}</small></strong><span>{progress(campaignsData[0])}%</span></div>
-<div className={styles.progressLine}><span style={{ width: `${progress(campaignsData[0])}%` }} /></div>
-              </div>
-              <button className={styles.goldButton} onClick={() => openCampaign(campaignsData[0])}>View Campaign <span>→</span></button>
-            </div>
-          </article>
-        </div>
-      </section>}
-
       <section className={styles.campaigns} id="fundraising">
         <div className={styles.shell}>
           <div className={styles.sectionHead}>

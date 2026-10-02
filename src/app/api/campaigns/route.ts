@@ -1,3 +1,4 @@
+import { campaignImage, campaignDescription } from "@/lib/campaignImages";
 import { NextResponse } from 'next/server';
 import { requireRole } from '@/lib/auth';
 import { sqlClient } from '@/lib/db';
@@ -25,7 +26,7 @@ export async function GET(request: Request) {
       GROUP BY c.id
       ORDER BY c.created_at DESC
     `;
-    return NextResponse.json(rows.map((r:any)=>({...r,id:String(r.id),goal:Number(r.goal),amount:Number(r.amount)})));
+    return NextResponse.json(rows.map((r:any)=>({...r,id:String(r.id),image:campaignImage(r.image),description:campaignDescription(r.image,r.description),goal:Number(r.goal),amount:Number(r.amount)})));
   } catch (e: any) {
     return NextResponse.json(
       { error: e.message === 'UNAUTHORIZED' ? 'Unauthorized' : e.message || 'Could not load campaigns.' },

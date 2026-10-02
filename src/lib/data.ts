@@ -1,3 +1,4 @@
+import { campaignImage, campaignDescription } from "./campaignImages";
 import { sqlClient } from './db';
 
 
@@ -33,5 +34,5 @@ export async function listCampaigns(includeInactive=false) {
       COALESCE(SUM(CASE WHEN d.status='completed' THEN d.amount ELSE 0 END),0) AS amount
     FROM campaigns c LEFT JOIN donations d ON d.campaign_id=c.id
     WHERE c.status='active' GROUP BY c.id ORDER BY c.created_at ASC`;
-  return rows.map((r:any)=>({id:String(r.id),title:r.title,category:r.category,description:r.description,goal:Number(r.goal),amount:Number(r.amount),image:r.image,status:r.status}));
+  return rows.map((r:any)=>({id:String(r.id),title:r.title,category:r.category,description:campaignDescription(r.image,r.description),goal:Number(r.goal),amount:Number(r.amount),image:campaignImage(r.image),status:r.status}));
 }
