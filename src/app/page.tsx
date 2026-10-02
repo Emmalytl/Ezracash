@@ -5,7 +5,7 @@ import { useEffect, useState, useRef } from "react";
 import dynamic from "next/dynamic";
 import styles from "./page.module.css";
 import GivingSelector from "../components/GivingSelector";
-import { Heart, Sprout, Church } from "lucide-react";
+import { Heart, ArrowUpRight, Sprout, Church } from "lucide-react";
 import type { Campaign } from "../lib/data";
 
 const StripePaymentForm = dynamic(() => import("../components/StripePaymentForm"), { ssr: false });
@@ -193,6 +193,15 @@ export default function Home() {
               <button className={styles.outlineButton} onClick={scrollToFundraising}>Explore Our Fundraising</button>
             </div>
           </div>
+          <div className={styles.heroVisuals}>
+            <aside className={styles.heroInvitation}>
+              <span className={styles.invitationIcon}><Heart size={25} strokeWidth={1.5}/></span>
+              <div className={styles.eyebrow}>FAITH IN ACTION</div>
+              <h2>Small acts of generosity.<br />Meaningful change.</h2>
+              <p>Choose a cause close to your heart, or support the ministry with a tithe or offering.</p>
+              <button onClick={() => openGive()}>Find your way to give <ArrowUpRight size={18}/></button>
+              <small>One-time gifts · Monthly giving</small>
+            </aside>
           <div className={styles.purposeOrb} aria-hidden="true">
             <div className={styles.orbitRing}>
               <svg className={styles.circularMarquee} viewBox="0 0 350 350" focusable="false">
@@ -201,6 +210,7 @@ export default function Home() {
               </svg>
             </div>
             <div className={styles.orbCore}><small>HOUSE OF EZRA</small><strong>GIVE<br />WITH<br /><em>PURPOSE</em></strong><span>✦</span></div>
+          </div>
           </div>
 
 </div>

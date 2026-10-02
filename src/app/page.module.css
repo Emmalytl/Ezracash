@@ -274,3 +274,7 @@
 .purposeOrb{align-self:center;justify-self:center}.circularMarquee{width:100%;height:100%;overflow:visible}.circularMarquee text{fill:#e1c78a;font:700 11px Arial,Helvetica,sans-serif;letter-spacing:2px}.orbitRing{border:0;box-shadow:0 0 0 18px #ffffff06,0 0 0 19px #e0aa3920}.orbitRing::before,.orbitRing::after{display:none}.fourCampaigns{grid-template-columns:repeat(2,minmax(0,1fr))}.fourCampaigns .campaignCard,.fourCampaigns .campaignCard:nth-last-child(2):nth-child(3n+1),.fourCampaigns .campaignCard:last-child:nth-child(3n+2){grid-column:auto}
 @media(max-width:1000px){.purposeOrb{width:280px;height:280px}}
 @media(max-width:720px){.purposeOrb{width:220px;height:220px;margin:20px auto 15px}.orbCore{width:150px;height:150px}.orbCore strong{font-size:22px}.orbCore small{font-size:7px}.fourCampaigns{grid-template-columns:1fr}.heroContent{display:flex;align-items:stretch;gap:0}.featuredWrap{padding-top:40px}}
+
+/* Keep the rectangular giving card and the circular marquee together. */
+.heroVisuals{display:flex;flex-direction:column;align-items:center;gap:30px;padding:42px 0;width:100%}.heroVisuals .heroInvitation{width:100%;box-sizing:border-box}.heroVisuals .purposeOrb{width:220px;height:220px;margin:0}.heroVisuals .orbCore{width:150px;height:150px}.heroVisuals .orbCore strong{font-size:22px}.heroVisuals .orbCore small{font-size:7px}
+@media(max-width:720px){.heroVisuals{padding:0 0 15px;gap:34px}.heroVisuals .heroInvitation{max-width:500px}.heroVisuals .purposeOrb{width:220px;height:220px;margin:0}}

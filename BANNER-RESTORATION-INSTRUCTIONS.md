@@ -2,7 +2,7 @@
 
 Based on GitHub main commit 722297f.
 
-- Restored the circular giving marquee in the main banner, replacing the rectangular invitation card.
+- Kept the rectangular giving invitation card and added the circular giving marquee alongside it in the banner. Both are included.
 - Restored the featured campaign banner below the main banner. It features the active Missions campaign, with a non-building campaign fallback.
 - The featured campaign is excluded from the card grid to prevent a duplicate. It remains selectable in the giving modal.
 - Kept the approved African American youths sharing magazines image and the existing giving/payment flow.
