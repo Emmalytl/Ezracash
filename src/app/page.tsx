@@ -8,6 +8,7 @@ import GivingSelector from "../components/GivingSelector";
 import { Heart, ArrowUpRight, Sprout, Church } from "lucide-react";
 import type { Campaign } from "../lib/data";
 
+const PayPalSandboxCheckout = dynamic(() => import("../components/PayPalSandboxCheckout"), { ssr: false });
 const StripePaymentForm = dynamic(() => import("../components/StripePaymentForm"), { ssr: false });
 
 
@@ -29,6 +30,8 @@ export default function Home() {
   const [recurringConsent, setRecurringConsent] = useState(false);
   const [frequency, setFrequency] = useState("One-time");
   useEffect(() => { setRecurringConsent(false); }, [amount, selected.id]);
+  const [providerConfig, setProviderConfig] = useState<any>(null);
+  useEffect(() => { fetch('/api/payments/config', {cache:'no-store'}).then(r => { if (!r.ok) throw new Error(); return r.json(); }).then(setProviderConfig).catch(() => setProviderConfig(null)); }, []);
   const [paymentMethod, setPaymentMethod] = useState("Card");
   const [donorName, setDonorName] = useState("");
   const [donorEmail, setDonorEmail] = useState("");
@@ -60,7 +63,7 @@ export default function Home() {
   const scrollHome = () => window.scrollTo({ top: 0, behavior: "smooth" });
   const scrollToFundraising = () => document.getElementById("fundraising")?.scrollIntoView({ behavior: "smooth", block: "start" });
   const openCampaign = (campaign: Campaign) => { setSelected(campaign); setModal("campaign"); };
-  const openGive = (campaign?: Campaign) => { if (campaign) setSelected(campaign); setClientSecret(""); setPaymentError(""); setPaymentComplete(false); setConfirmedGift(null); setReceiptToken(""); setRecurringConsent(false); setModal("give"); };
+  const openGive = (campaign?: Campaign) => { setPaymentMethod("Card"); if (campaign) setSelected(campaign); setClientSecret(""); setPaymentError(""); setPaymentComplete(false); setConfirmedGift(null); setReceiptToken(""); setRecurringConsent(false); setModal("give"); };
 
   const givingType = selected.id === "tithe" ? "tithe" : selected.id === "0" ? "general" : selected.id === "offering" ? "offering" : "campaign";
   const givingCampaignId = givingType === "campaign" && selected.id !== "campaign-gift" ? selected.id : "";
@@ -331,18 +334,21 @@ return (
                 <h2>Choose Payment</h2>
                 <p className={styles.modalIntro}>Complete your {frequency.toLowerCase()} gift of <strong>{money(amount || 0)}</strong> to {selected?.title || "House of Ezra"}.</p>
                 <div className={styles.checkoutSummary}><span>Your gift · USD</span><strong>{money(amount || 0)}</strong></div>
+                {paymentMethod === "Card" && providerConfig?.stripe?.mode === "test" && <div className={styles.paymentNotice}>TEST MODE · Cards, Apple Pay and Google Pay use test credentials. No real donation is collected.</div>}
                 <div className={styles.methodChoices} aria-label="Payment method">
-                  {["Card"].map(method => (
-                    <button type="button" key={method} aria-pressed={paymentMethod === method} disabled={paymentLoading || paymentComplete || method !== "Card"} className={`${styles.methodChoice} ${paymentMethod === method ? styles.methodSelected : ""}`} onClick={() => { setPaymentMethod(method); setClientSecret(""); setPaymentError(""); setPaymentComplete(false); if (["Card", "Apple Pay", "Google Pay"].includes(method)) void startStripePayment(method); }}>
-                      <span className={styles.methodRadio} aria-hidden="true"/><span className={styles.methodName}>{method}<small>{method === "Card" ? "Debit or credit card" : method === "Zelle" ? "Through your banking app" : ["Apple Pay", "Google Pay"].includes(method) ? "Digital wallet" : "Not connected yet"}</small></span><span className={styles.methodSymbol} aria-hidden="true">{method === "Card" ? "▰" : method === "PayPal" ? "P" : method === "Cash App" ? "$" : "→"}</span>
+                  {["Card", "PayPal", "Venmo"].map(method => (
+                    <button type="button" key={method} aria-pressed={paymentMethod === method} disabled={paymentLoading || paymentComplete || (method === "PayPal" && !providerConfig?.paypal?.configured) || (method === "Venmo" && !providerConfig?.venmo?.configured)} className={`${styles.methodChoice} ${paymentMethod === method ? styles.methodSelected : ""}`} onClick={() => { setPaymentMethod(method); setClientSecret(""); setPaymentError(""); setPaymentComplete(false); if (["Card", "Apple Pay", "Google Pay"].includes(method)) void startStripePayment(method); }}>
+                      <span className={styles.methodRadio} aria-hidden="true"/><span className={styles.methodName}>{method}<small>{method === "Card" ? (providerConfig?.stripe?.mode === "test" ? "Card & wallets · Test mode" : "Debit or credit card") : providerConfig?.[method.toLowerCase()]?.configured ? "Test mode · no real money" : "Sandbox setup required"}</small></span><span className={styles.methodSymbol} aria-hidden="true">{method === "Card" ? "▰" : method === "PayPal" ? "P" : method === "Cash App" ? "$" : "→"}</span>
                     </button>
                   ))}
                 </div>
 
-                {(paymentMethod === "Card" || paymentMethod === "Apple Pay" || paymentMethod === "Google Pay") ? (
+                {(paymentMethod === "PayPal" || paymentMethod === "Venmo") && providerConfig?.paypal?.clientId ? (
+                  <PayPalSandboxCheckout key={paymentMethod} clientId={providerConfig.paypal.clientId} method={paymentMethod} gift={{amount,donation_type:givingType,campaign_id:givingCampaignId||null,donor_name:donorName||"Anonymous",donor_email:donorEmail,frequency}} />
+                ) : (paymentMethod === "Card" || paymentMethod === "Apple Pay" || paymentMethod === "Google Pay") ? (
                   paymentComplete ? <section className={styles.confirmationPanel} aria-live="polite"><div className={styles.confirmationMark}>{confirmedGift?.status === 'completed' ? '✓' : '…'}</div><h3>{confirmedGift?.status === 'completed' ? 'Your gift is confirmed' : confirmedGift?.status === 'failed' ? 'Payment not confirmed' : 'Confirming your gift'}</h3><p>{confirmedGift?.status === 'completed' ? 'Thank you for supporting the ministry. Your donation has been recorded.' : confirmedGift?.status === 'failed' ? 'The ministry record reports that this payment failed. Contact the ministry if your bank shows a charge.' : 'Your payment has been submitted. We are waiting for the payment confirmation. Please do not pay again.'}</p><strong>{money(amount)} USD</strong>{confirmationError && <p role="alert">{confirmationError}</p>}{confirmedGift?.status === 'completed' ? <button type="button" className={styles.fullGoldButton} onClick={downloadReceipt}>Download receipt ↓</button> : <button type="button" className={styles.backButton} onClick={checkConfirmation}>Check confirmation</button>}</section> : clientSecret ? <StripePaymentForm clientSecret={clientSecret} donationId="" amount={money(amount || 0)} onSuccess={()=>setPaymentComplete(true)} /> : <div className={styles.paymentPanel}>
                     <div className={styles.paymentPanelHead}>
-<div><span className={styles.paymentPanelLabel}>SECURE STRIPE CHECKOUT</span><strong>{paymentMethod}</strong></div>
+<div><span className={styles.paymentPanelLabel}>SECURE CARD CHECKOUT</span><strong>{paymentMethod}</strong></div>
                       <span className={styles.paymentStatus}>Available</span>
                     </div>
                     <p className={styles.modalIntro}>

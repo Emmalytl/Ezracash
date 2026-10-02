@@ -6,10 +6,11 @@
     "dev": "next dev",
     "build": "next build && npm run test:routes",
     "start": "next start",
-    "test": "node tests/payment-security.cjs && node tests/monthly-giving.cjs && node tests/campaign-photos.cjs",
+    "test": "node tests/payment-security.cjs && node tests/monthly-giving.cjs && node tests/campaign-photos.cjs && node tests/paypal-sandbox.cjs",
     "typecheck": "tsc --noEmit",
     "test:routes": "node tests/admin-route-smoke.cjs",
-    "test:campaign-photos": "node tests/campaign-photos.cjs"
+    "test:campaign-photos": "node tests/campaign-photos.cjs",
+    "test:paypal": "node tests/paypal-sandbox.cjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
