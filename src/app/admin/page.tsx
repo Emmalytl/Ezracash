@@ -1,7 +1,8 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import styles from "./admin.module.css";
+import styles from "./signin-card.module.css";
+import { ArrowLeft, ArrowRight, Eye, EyeOff, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("");
@@ -50,112 +51,35 @@ export default function AdminLogin() {
   }
 
   return (
-    <main className={`${styles.authPage} workspace-login`}>
-      <aside className="login-story">
-        <a href="/" className="login-wordmark">
-          <img
-            src="/branding/house-of-ezra-logo-transparent.png"
-            alt=""
-          />
-          HOUSE OF EZRA <span>GIVING</span>
-        </a>
-
-        <div>
-          <span className="login-kicker">THE MINISTRY WORKSPACE</span>
-          <h2>
-            A shared purpose.
-            <br />
-            A place to make
-            <br />
-            <em>an impact.</em>
-          </h2>
-          <p>
-            People, generosity and stewardship — brought together in
-            one thoughtful workspace.
-          </p>
-          <div className="login-roles">
-            <span>Administrator</span>
-            <span>Staff</span>
-            <span>Developer</span>
+    <main className={styles.page}>
+      <div className={styles.shell}>
+        <section className={styles.card} aria-labelledby="sign-in-title">
+          <div className={styles.brand}>
+            <img src="/branding/house-of-ezra-logo-transparent.png" alt="House of Ezra logo"/>
+            <div><span>HOUSE OF EZRA</span><small>GIVING WORKSPACE</small></div>
           </div>
-        </div>
+          <header className={styles.intro}>
+            <h1 id="sign-in-title">Admin Sign In</h1>
+            <p>Welcome back. Sign in to your account to continue to your ministry workspace.</p>
+          </header>
 
-        <a className="login-public" href="/">
-          ← Return to the giving site
-        </a>
-      </aside>
-
-      <section className={`${styles.authCard} workspace-login-card`}>
-        <div className={styles.authBrand}>HOUSE OF EZRA GIVING</div>
-        <h1>Welcome back.</h1>
-        <p>
-          Sign in with your individual account. Your role determines
-          which ministry workspace opens.
-        </p>
-
-        <form className={styles.form} onSubmit={submit}>
-          <label>
-            Email address
-            <input
-              required
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              autoComplete="username"
-              placeholder="you@example.com"
-            />
-          </label>
-
-          <label>
-            Password
-            <div style={{ position: "relative", marginTop: 6 }}>
-              <input
-                required
-                minLength={8}
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                autoComplete="current-password"
-                placeholder="Enter your password"
-                style={{ marginTop: 0, paddingRight: 78 }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((value) => !value)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-                style={{
-                  position: "absolute",
-                  right: 8,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  border: 0,
-                  background: "transparent",
-                  color: "#0c3a63",
-                  fontSize: 11,
-                  fontWeight: 800,
-                  cursor: "pointer",
-                }}
-              >
-                {showPassword ? "HIDE" : "SHOW"}
-              </button>
+          <form className={styles.form} onSubmit={submit}>
+            <div className={styles.field}>
+              <label htmlFor="admin-email">Email address</label>
+              <div className={styles.inputWrap}><Mail size={18} aria-hidden="true"/><input id="admin-email" name="email" required type="email" value={email} onChange={event=>setEmail(event.target.value)} autoComplete="username" placeholder="you@example.com" disabled={loading} aria-describedby={error?"sign-in-error":undefined}/></div>
             </div>
-          </label>
-
-          {error && (
-            <div className={styles.error} role="alert">
-              {error}
+            <div className={styles.field}>
+              <label htmlFor="admin-password">Password</label>
+              <div className={styles.inputWrap}><LockKeyhole size={18} aria-hidden="true"/><input id="admin-password" name="password" required minLength={8} type={showPassword?"text":"password"} value={password} onChange={event=>setPassword(event.target.value)} autoComplete="current-password" placeholder="Enter your password" disabled={loading} aria-describedby={error?"sign-in-error":undefined}/><button className={styles.passwordToggle} type="button" onClick={()=>setShowPassword(value=>!value)} aria-label={showPassword?"Hide password":"Show password"} aria-pressed={showPassword}>{showPassword?<EyeOff size={18}/>:<Eye size={18}/>}</button></div>
             </div>
-          )}
+            {error&&<div className={styles.error} id="sign-in-error" role="alert">{error}</div>}
+            <button className={styles.submit} disabled={loading} type="submit">{loading?<><span className={styles.spinner}/>Signing in…</>:<>Sign in <ArrowRight size={18} aria-hidden="true"/></>}</button>
+          </form>
 
-          <button
-            className={styles.primary}
-            disabled={loading}
-            type="submit"
-          >
-            {loading ? "Signing in…" : "Sign in"}
-          </button>
-        </form>
-      </section>
+          <div className={styles.secureNote}><span className={styles.secureIcon}><ShieldCheck size={18}/></span><div><strong>One secure login</strong><p>Administrator, Staff and Developer accounts sign in here. Your account opens the right workspace.</p></div></div>
+        </section>
+        <a className={styles.backLink} href="/"><ArrowLeft size={14}/>Back to House of Ezra Giving</a>
+      </div>
     </main>
   );
 }
