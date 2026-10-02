@@ -1,0 +1,8 @@
+This repair restores three misplaced files:
+src/app/page.tsx -- public donation landing page
+src/app/layout.tsx -- root HTML/body layout and global styles
+src/app/admin/page.tsx -- public admin login
+
+Extract first. Copy the entire src folder into your LOCAL GitHub Desktop repository root and replace files. Keep all nested folder paths. Commit and push to main. Do not place every page.tsx or layout.tsx into one folder. No database reset or environment variable changes are needed.
+
+Verified locally: production build passed, 25 existing regression checks passed, / and /admin returned HTTP 200 with expected pages and no redirect. Authenticated production login and Vercel deployment have not been tested.
