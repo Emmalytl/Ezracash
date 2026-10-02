@@ -4,23 +4,17 @@ import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
 import dynamic from "next/dynamic";
 import styles from "./page.module.css";
-import { useEffect, useState, useRef } from "react";
-import dynamic from "next/dynamic";
-import styles from "./page.module.css";
 import GivingSelector from "../components/GivingSelector";
 import { Heart, ArrowUpRight, Sprout, Church } from "lucide-react";
 import type { Campaign } from "../lib/data";
 
 const StripePaymentForm = dynamic(() => import("../components/StripePaymentForm"), { ssr: false });
-import type { Campaign } from "../lib/data";
 
-const StripePaymentForm = dynamic(() => import("../components/StripePaymentForm"), { ssr: false });
 
 
 
 const money = (n: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
 
-const money = (n: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
 
 const progress = (c: Campaign) => c.goal > 0 ? Math.min(100, Math.max(0, Math.round(c.amount / c.goal * 100))) : 0;
 type Modal = "give" | "campaign" | "payment" | null;
