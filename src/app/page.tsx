@@ -4,8 +4,14 @@ import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
 import dynamic from "next/dynamic";
 import styles from "./page.module.css";
+import { useEffect, useState, useRef } from "react";
+import dynamic from "next/dynamic";
+import styles from "./page.module.css";
 import GivingSelector from "../components/GivingSelector";
 import { Heart, ArrowUpRight, Sprout, Church } from "lucide-react";
+import type { Campaign } from "../lib/data";
+
+const StripePaymentForm = dynamic(() => import("../components/StripePaymentForm"), { ssr: false });
 import type { Campaign } from "../lib/data";
 
 const StripePaymentForm = dynamic(() => import("../components/StripePaymentForm"), { ssr: false });
@@ -14,8 +20,9 @@ const StripePaymentForm = dynamic(() => import("../components/StripePaymentForm"
 
 const money = (n: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
 
-const progress = (c: Campaign) => c.goal > 0 ? Math.min(100, Math.max(0, Math.round(c.amount / c.goal * 100))) : 0;
+const money = (n: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
 
+const progress = (c: Campaign) => c.goal > 0 ? Math.min(100, Math.max(0, Math.round(c.amount / c.goal * 100))) : 0;
 type Modal = "give" | "campaign" | "payment" | null;
 
 export default function Home() {
@@ -172,30 +179,41 @@ export default function Home() {
         <div className={styles.heroOverlay} />
         <div className={`${styles.shell} ${styles.heroContent}`}>
           <div className={styles.heroCopy}>
-            <div className={styles.eyebrow}>HOUSE OF EZRA · GIVING</div>
-            <h1>A generous heart.<br /><span>A lasting impact.</span></h1>
-            <p>Give with purpose. Help us share the Gospel, care for our neighbours, and build a welcoming home for the next generation.</p>
+<div className={styles.eyebrow}>HOUSE OF EZRA · GIVING</div>
+<h2 className={styles.heroBrandTitle}>HOUSE OF EZRA GIVING</h2>
+<div className={styles.heroMarquee}>
+  <div className={styles.heroMarqueeTrack}>
+    <span>HOUSE OF EZRA GIVING</span><b>✦</b><span>GIVE WITH PURPOSE</span><b>✦</b><span>SUPPORT THE WORK OF GOD</span><b>✦</b>
+    <span>HOUSE OF EZRA GIVING</span><b>✦</b><span>GIVE WITH PURPOSE</span><b>✦</b><span>SUPPORT THE WORK OF GOD</span><b>✦</b>
+  </div>
+</div>
+<h1>A generous heart.<br /><span>A lasting impact.</span></h1>
+<p>Give with purpose. Help us share the Gospel, care for our neighbours, and build a welcoming home for the next generation.</p>
             <div className={styles.heroActions}>
               <button className={styles.goldButton} onClick={() => openGive()}>Give Now <span>→</span></button>
               <button className={styles.outlineButton} onClick={scrollToFundraising}>Explore Our Fundraising</button>
             </div>
           </div>
-          <aside className={styles.heroInvitation}>
-            <span className={styles.invitationIcon}><Heart size={25} strokeWidth={1.5}/></span>
-            <div className={styles.eyebrow}>FAITH IN ACTION</div>
-            <h2>Small acts of generosity.<br />Meaningful change.</h2>
-            <p>Choose a cause close to your heart, or support the ministry with a tithe or offering.</p>
-            <button onClick={() => openGive()}>Find your way to give <ArrowUpRight size={18}/></button>
-            <small>One-time gifts · Monthly giving</small>
-          </aside>
-        </div>
-      </section>
+<aside className={styles.heroInvitation}>
+  <span className={styles.invitationIcon}><Heart size={25} strokeWidth={1.5}/></span>
+  <div className={styles.eyebrow}>FAITH IN ACTION</div>
+  <h2>Small acts of generosity.<br />Meaningful change.</h2>
+  <p>Choose a cause close to your heart, or support the ministry with a tithe or offering.</p>
+  <button onClick={() => openGive()}>Find your way to give <ArrowUpRight size={18}/></button>
+  <small>One-time gifts · Monthly giving</small>
+</aside>
+<div className={styles.purposeOrb} aria-hidden="true">
+  <div className={styles.orbitRing}><span>GIVE • SERVE • BUILD • REACH • GROW • </span></div>
+  <div className={styles.orbCore}><small>HOUSE OF EZRA</small><strong>GIVE<br />WITH<br /><em>PURPOSE</em></strong><span>✦</span></div>
+</div>
+</div>
+</section>
 
-      <section className={styles.purposeStrip} aria-label="Your giving makes a difference"><div className={`${styles.shell} ${styles.purposeGrid}`}>
-        <div><Church size={24}/><span><strong>Build a home for ministry</strong><small>A welcoming place to worship and grow.</small></span></div>
-        <div><Heart size={24}/><span><strong>Care for our community</strong><small>Compassion that reaches beyond our walls.</small></span></div>
-        <div><Sprout size={24}/><span><strong>Invest in the next generation</strong><small>Help young people grow in faith.</small></span></div>
-      </div></section>
+<section className={styles.purposeStrip} aria-label="Your giving makes a difference"><div className={`${styles.shell} ${styles.purposeGrid}`}>
+  <div><Church size={24}/><span><strong>Build a home for ministry</strong><small>A welcoming place to worship and grow.</small></span></div>
+  <div><Heart size={24}/><span><strong>Care for our community</strong><small>Compassion that reaches beyond our walls.</small></span></div>
+  <div><Sprout size={24}/><span><strong>Invest in the next generation</strong><small>Help young people grow in faith.</small></span></div>
+</div></section>
       {campaignsData[0] && <section className={styles.featuredWrap}>
         <div className={styles.shell}>
           <article className={styles.featured}>
@@ -207,8 +225,8 @@ export default function Home() {
               <h2>{campaignsData[0].title}</h2>
               <p>{campaignsData[0].description}</p>
               <div className={styles.featureProgress}>
-                <div className={styles.featureNumbers}><strong>{money(campaignsData[0].amount)} <small>raised of {money(campaignsData[0].goal)}</small></strong><span>{progress(campaignsData[0])}%</span></div>
-                <div className={styles.progressLine}><span style={{ width: `${progress(campaignsData[0])}%` }} /></div>
+<div className={styles.featureNumbers}><strong>{money(campaignsData[0].amount)} <small>raised of {money(campaignsData[0].goal)}</small></strong><span>{progress(campaignsData[0])}%</span></div>
+<div className={styles.progressLine}><span style={{ width: `${progress(campaignsData[0])}%` }} /></div>
               </div>
               <button className={styles.goldButton} onClick={() => openCampaign(campaignsData[0])}>View Campaign <span>→</span></button>
             </div>
@@ -225,13 +243,13 @@ export default function Home() {
           {campaignsData.length === 0 && <p>{campaignError || "There are no campaigns to display right now. You can still give a general offering."}</p>}
           <div className={styles.campaignGrid}>
             {campaignsData.map((campaign) => {
-              const percent = progress(campaign);
-              return (
-                <button className={styles.campaignCard} key={campaign.id} onClick={() => openCampaign(campaign)}>
-                  <div className={styles.cardImage} style={{ backgroundImage: `url(${campaign.image || "/branding/church-auditorium-banner.webp"})` }} />
-                  <div className={styles.cardBody}>
-                    <div className={styles.cardLabel}>{campaign.category}</div>
-                    <h3>{campaign.title}</h3><p className={styles.cardDescription}>{campaign.description}</p>
+const percent = progress(campaign);
+return (
+  <button className={styles.campaignCard} key={campaign.id} onClick={() => openCampaign(campaign)}>
+    <div className={styles.cardImage} style={{ backgroundImage: `url(${campaign.image || "/branding/church-auditorium-banner.webp"})` }} />
+    <div className={styles.cardBody}>
+      <div className={styles.cardLabel}>{campaign.category}</div>
+      <h3>{campaign.title}</h3><p className={styles.cardDescription}>{campaign.description}</p>
                     <div className={styles.cardMoney}><strong>{money(campaign.amount)}</strong> of {money(campaign.goal)}</div>
                     <div className={styles.cardProgress}><span style={{ width: `${percent}%` }} /></div>
                     <div className={styles.cardBottom}><span>View Details</span><b>→</b></div>
@@ -278,25 +296,25 @@ export default function Home() {
                   <div className={styles.cardLabel}>{selected.category}</div>
                   <h2>{selected.title}</h2>
                   <p>{selected.description}</p>
-                  <div className={styles.modalStats}><div><strong>{money(selected.amount)}</strong><span>raised</span></div><div><strong>{money(selected.goal)}</strong><span>goal</span></div><div><strong>{progress(selected)}%</strong><span>complete</span></div></div>
-                  <div className={styles.progressLine}><span style={{ width: `${progress(selected)}%` }} /></div>
+<div className={styles.modalStats}><div><strong>{money(selected.amount)}</strong><span>raised</span></div><div><strong>{money(selected.goal)}</strong><span>goal</span></div><div><strong>{progress(selected)}%</strong><span>complete</span></div></div>
+<div className={styles.progressLine}><span style={{ width: `${progress(selected)}%` }} /></div>
                   <button className={styles.fullGoldButton} onClick={() => openGive(selected)}>Give to This Campaign <span>→</span></button>
                 </div>
               </>
             ) : modal === "give" ? (
               <div className={styles.modalContent}>
                 <div className={styles.modalKicker}>HOUSE OF EZRA GIVING</div>
-                <h2>Give with purpose.</h2>
-                <p className={styles.modalIntro}>{selected?.title ? `Your generosity makes a difference. Choose where it goes below.` : "Choose where you would like your gift to make an impact."}</p>
-                <GivingSelector campaigns={campaignsData} selected={selected} onChange={setSelected}/>
-                <div className={styles.formGroup}><label htmlFor="donor-name">Donor name</label><input id="donor-name" autoComplete="name" value={donorName} onChange={e=>setDonorName(e.target.value)} placeholder="Your name (optional)" /></div>
-                <div className={styles.formGroup}><label htmlFor="donor-email">{frequency === "Monthly" ? "Email for receipt (required for monthly giving)" : "Email for receipt (optional)"}</label><input id="donor-email" autoComplete="email" required={frequency === "Monthly"} type="email" value={donorEmail} onChange={e=>setDonorEmail(e.target.value)} placeholder="you@example.com" /></div>
-                <div className={styles.formGroup}><label>Frequency</label><div className={styles.segmented}>{["One-time", "Monthly"].map(f => <button type="button" key={f} aria-pressed={frequency === f} className={frequency === f ? styles.segmentActive : ""} onClick={() => {setFrequency(f);setRecurringConsent(false);setPaymentError("");}}>{f}</button>)}</div></div>
-                <div className={styles.formGroup}><label>Amount</label><div className={styles.amountGrid}>{[50,100,250,500].map(v => <button type="button" key={v} aria-pressed={amount === v && !customAmount} className={amount === v && !customAmount ? styles.amountActive : ""} onClick={() => { setAmount(v); setCustomAmount(""); }}>{money(v)}</button>)}</div><div className={styles.customAmount}><span>$</span><input aria-label="Other gift amount in US dollars" inputMode="decimal" placeholder="Other amount" value={customAmount} onChange={(e) => { setCustomAmount(e.target.value); setAmount(Number(e.target.value) || 0); }} /></div></div>
-                {frequency === "Monthly" && <label className={styles.recurringConsent}><input type="checkbox" checked={recurringConsent} onChange={event=>setRecurringConsent(event.target.checked)}/><span>I authorise <b>{money(amount)} USD now and every month</b> until I cancel. I can manage or cancel through the secure subscription portal.</span></label>}
-                {paymentError && <div className="payment-error" role="alert">{paymentError}</div>}
-                <button className={styles.fullGoldButton} disabled={paymentLoading} onClick={continueToPayment}>{paymentLoading ? "Preparing checkout…" : frequency === "Monthly" ? "Continue to Monthly Checkout" : "Continue to Payment"} <span>→</span></button>
-                <small className={styles.formNote}>Your gift is in USD. Review your details before payment.</small>
+<h2>Give with purpose.</h2>
+<p className={styles.modalIntro}>{selected?.title ? `Your generosity makes a difference. Choose where it goes below.` : "Choose where you would like your gift to make an impact."}</p>
+<GivingSelector campaigns={campaignsData} selected={selected} onChange={setSelected}/>
+<div className={styles.formGroup}><label htmlFor="donor-name">Donor name</label><input id="donor-name" autoComplete="name" value={donorName} onChange={e=>setDonorName(e.target.value)} placeholder="Your name (optional)" /></div>
+<div className={styles.formGroup}><label htmlFor="donor-email">{frequency === "Monthly" ? "Email for receipt (required for monthly giving)" : "Email for receipt (optional)"}</label><input id="donor-email" autoComplete="email" required={frequency === "Monthly"} type="email" value={donorEmail} onChange={e=>setDonorEmail(e.target.value)} placeholder="you@example.com" /></div>
+<div className={styles.formGroup}><label>Frequency</label><div className={styles.segmented}>{["One-time", "Monthly"].map(f => <button type="button" key={f} aria-pressed={frequency === f} className={frequency === f ? styles.segmentActive : ""} onClick={() => {setFrequency(f);setRecurringConsent(false);setPaymentError("");}}>{f}</button>)}</div></div>
+<div className={styles.formGroup}><label>Amount</label><div className={styles.amountGrid}>{[50,100,250,500].map(v => <button type="button" key={v} aria-pressed={amount === v && !customAmount} className={amount === v && !customAmount ? styles.amountActive : ""} onClick={() => { setAmount(v); setCustomAmount(""); }}>{money(v)}</button>)}</div><div className={styles.customAmount}><span>$</span><input aria-label="Other gift amount in US dollars" inputMode="decimal" placeholder="Other amount" value={customAmount} onChange={(e) => { setCustomAmount(e.target.value); setAmount(Number(e.target.value) || 0); }} /></div></div>
+{frequency === "Monthly" && <label className={styles.recurringConsent}><input type="checkbox" checked={recurringConsent} onChange={event=>setRecurringConsent(event.target.checked)}/><span>I authorise <b>{money(amount)} USD now and every month</b> until I cancel. I can manage or cancel through the secure subscription portal.</span></label>}
+{paymentError && <div className="payment-error" role="alert">{paymentError}</div>}
+<button className={styles.fullGoldButton} disabled={paymentLoading} onClick={continueToPayment}>{paymentLoading ? "Preparing checkout…" : frequency === "Monthly" ? "Continue to Monthly Checkout" : "Continue to Payment"} <span>→</span></button>
+<small className={styles.formNote}>Your gift is in USD. Review your details before payment.</small>
               </div>
             ) : (
               <div className={styles.modalContent}>
@@ -318,7 +336,7 @@ export default function Home() {
                 {(paymentMethod === "Card" || paymentMethod === "Apple Pay" || paymentMethod === "Google Pay") ? (
                   paymentComplete ? <section className={styles.confirmationPanel} aria-live="polite"><div className={styles.confirmationMark}>{confirmedGift?.status === 'completed' ? '✓' : '…'}</div><h3>{confirmedGift?.status === 'completed' ? 'Your gift is confirmed' : confirmedGift?.status === 'failed' ? 'Payment not confirmed' : 'Confirming your gift'}</h3><p>{confirmedGift?.status === 'completed' ? 'Thank you for supporting the ministry. Your donation has been recorded.' : confirmedGift?.status === 'failed' ? 'The ministry record reports that this payment failed. Contact the ministry if your bank shows a charge.' : 'Your payment has been submitted. We are waiting for the payment confirmation. Please do not pay again.'}</p><strong>{money(amount)} USD</strong>{confirmationError && <p role="alert">{confirmationError}</p>}{confirmedGift?.status === 'completed' ? <button type="button" className={styles.fullGoldButton} onClick={downloadReceipt}>Download receipt ↓</button> : <button type="button" className={styles.backButton} onClick={checkConfirmation}>Check confirmation</button>}</section> : clientSecret ? <StripePaymentForm clientSecret={clientSecret} donationId="" amount={money(amount || 0)} onSuccess={()=>setPaymentComplete(true)} /> : <div className={styles.paymentPanel}>
                     <div className={styles.paymentPanelHead}>
-                      <div><span className={styles.paymentPanelLabel}>SECURE CHECKOUT</span><strong>{paymentMethod}</strong></div>
+<div><span className={styles.paymentPanelLabel}>SECURE STRIPE CHECKOUT</span><strong>{paymentMethod}</strong></div>
                       <span className={styles.paymentStatus}>Available</span>
                     </div>
                     <p className={styles.modalIntro}>
