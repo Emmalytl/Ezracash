@@ -1,3 +1,35 @@
+import { NextResponse } from 'next/server';
+import { requireRole } from '@/lib/auth';
+import { sqlClient } from '@/lib/db';
+import { listCampaigns, ensureCampaignSchema } from '@/lib/data';
+
+export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const adminView = url.searchParams.get('admin') === '1';
+  try {
+    if (!adminView) {
+      try {
+        const rows = await listCampaigns(false);
+        return NextResponse.json(rows);
+      } catch {
+        return NextResponse.json({error:'Fundraising information is temporarily unavailable.'},{status:503});
+      }
+    }
+    await requireRole(['developer','administrator','staff']);
+    await ensureCampaignSchema();
+    const sql = sqlClient();
+    const rows = await sql`
+      SELECT c.id,c.title,c.category,c.description,c.goal,c.image,c.status,c.created_at,c.updated_at,
+        COALESCE(SUM(CASE WHEN d.status='completed' THEN d.amount ELSE 0 END),0) AS amount
+      FROM campaigns c LEFT JOIN donations d ON d.campaign_id=c.id
+      GROUP BY c.id
+      ORDER BY c.created_at DESC
+    `;
+    return NextResponse.json(rows.map((r:any)=>({...r,id:String(r.id),goal:Number(r.goal),amount:Number(r.amount)})));
+  } catch (e: any) {
+    return NextResponse.json(
+      { error: e.message === 'UNAUTHORIZED' ? 'Unauthorized' : e.message || 'Could not load campaigns.' },
+      { status: e.message === 'UNAUTHORIZED' ? 401 : 500 }
     );
   }
 }
