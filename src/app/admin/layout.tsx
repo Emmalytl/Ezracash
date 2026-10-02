@@ -1,5 +1,6 @@
 "use client";
 import "./dashboard-theme.css";
+import studio from "./professional.module.css";
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 function SessionActivity() {
@@ -39,5 +40,5 @@ function SessionActivity() {
 // Keep activity tracking here so the admin layout needs no companion import.
 export const dynamic = 'force-dynamic';
 export default function AdminLayout({children}:{children:React.ReactNode}) {
-  return <><SessionActivity />{children}</>;
+  return <div className={studio.studio}><SessionActivity />{children}</div>;
 }

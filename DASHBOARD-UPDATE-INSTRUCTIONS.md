@@ -1,28 +1,36 @@
-# Dashboard design update
+# House of Ezra — redesigned workspaces
 
-Based on main commit 85f97b6.
+## Install this complete update
+Extract the ZIP. Copy its contents into your existing Ezracash repository, replacing the matching files in their original folders. Do not paste one page file into another page. Keep the new WorkspaceActions.tsx, DeveloperSidebar.tsx, professional.module.css and security/ui.tsx files with the update. Commit and push to the GitHub branch connected to Vercel, then wait for the deployment to succeed.
 
-## Changes
+This package has not been pushed or deployed. The live site will change only after deployment. Preserve your current Vercel environment variables.
 
-- Removed the small House of Ezra Giving label before the larger banner heading. Kept the rectangular invitation, round marquee, featured Missions campaign and approved youth image.
-- Administrator: light sidebar, navy welcome panel, refined financial metrics and charts, clearer campaign cards, tables and forms.
-- Staff: green operations panel, navigation sidebar, campaign photos, refined giving/expense tables and responsive mobile navigation. Both Staff dashboard URLs use the same UI.
-- Developer: violet control panel, new navigation sidebar, refined session cards and audit activity. User Management now opens the existing account-management interface instead of redirecting back to Developer.
-- Restored the login form at /admin, which had been replaced in the uploaded repository by a page that redirected signed-out visitors back to /admin.
-- Explicit per-request rendering on the protected Developer and Staff pages.
+## What changed
+- Split sign-in page with branded ministry panel and clear account form.
+- Dark navigation rail and a consistent visual system for all workspaces.
+- Administrator: larger financial summaries, a new destination panel, improved charts, records and campaign cards.
+- Staff: focused section headings, overview-only welcome panel, working destination shortcuts and improved forms and records.
+- Developer: violet command center, prominent management controls, coordinated security and audit pages.
+- Selected Administrator and Staff sections persist on refresh through the view query parameter.
+- Security & Audit now uses the developer navigation and checks the role on the server.
+- Developer User Management and Administration links open their respective tools.
+- Restored the actual sign-in component at /admin. This resolves the self-redirect route in the source this update is based on.
+- Scoped styles prevent legacy global dashboard styles from overriding the redesign.
+- Existing landing-page rectangle, round marquee, missions feature and youth-magazine image are included; the small duplicate heading stays removed.
 
-Existing role checks, account permissions, operational API handlers, payment settings and database records are retained. No account, campaign, donation or expense was created while preparing this update.
+## Routes
+- /admin — sign in
+- /admin/administrator — administrator workspace (also available to developers)
+- /admin/staff/dashboard — staff workspace
+- /admin/developer — developer workspace
+- /admin/security — developer security and audit
 
-## Upload
+## Validation
+Production build and type validation passed. The 15 existing payment-security checks and 10 mocked monthly-giving checks passed. Runtime HTTP checks passed for the landing page and login, including an expired-login query. All five privileged routes redirected a signed-out request to /admin. The production server served the new scoped dashboard stylesheet.
 
-Extract this full project. Replace matching files inside your GitHub Desktop repository folder, keeping every subfolder in place. Replace complete files; do not paste the new contents into the old contents. Commit and push main to trigger Vercel. Keep existing environment variables and database.
+Authenticated interactions and graphical desktop/mobile review remain to be checked after deployment; the browser preview was unavailable in this environment. This does not constitute live-provider payment verification. No donation records or accounts were created, and no payment credentials, environment variables or database records were changed.
 
-Include the new src/app/admin/dashboard-theme.css file. It is imported by the admin layout and provides the dashboard design.
+## After deployment
+Sign in with each existing role. Check navigation, refresh a selected section, open the existing campaign/gift/expense forms, and verify Developer User Management, Administration and Security & Audit. Use test mode for payment verification until live configuration is deliberately completed.
 
-## Validation and remaining checks
-
-Production build passed. All 25 existing payment regression checks passed; monthly checks use mocked provider/database responses. Local HTTP checks passed for the public page and login, and for unauthenticated redirects on Administrator, Developer and both Staff routes.
-
-The cloud browser blocked access to the local preview. Visual verification and signed-in workflow tests for all three roles remain pending after deployment. This file does not claim a live deployment or successful authenticated operations.
-
-After deployment, verify each role with its existing account, open dashboard navigation and record forms, and check Developer User Management and Administration links. Payment mode is unchanged.
+Source base: GitHub main 85f97b6, plus the prior complete landing-page and route repairs.

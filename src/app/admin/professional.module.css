@@ -1,0 +1,164 @@
+/* Scoped visual system: specificity keeps legacy global dashboard rules from
+   overriding this workspace when Next.js loads another route's stylesheet. */
+.studio { min-height: 100dvh; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+.studio *, .studio *::before, .studio *::after { box-sizing: border-box; }
+.studio :global(.admin-shell), .studio :global(.staff-page), .studio :global(.dev-page) { background: #f4f5f8; color:#172c40; --line:#e3e7ef; --muted:#63758b; }
+.studio :global(.admin-sidebar), .studio :global(.workspace-sidebar) { width:260px; background:#101e30; color:#aebcce; border:0; padding:30px 20px; box-shadow:8px 0 40px #0c20300a; }
+.studio :global(.admin-sidebar .sidebar-brand), .studio :global(.workspace-brand) { border-bottom:1px solid #ffffff14; padding-bottom:27px; }
+.studio :global(.admin-sidebar .brand-mark), .studio :global(.workspace-brand img) { width:48px; height:52px; background:#ffffffee; border-radius:14px; padding:5px; }
+.studio :global(.admin-sidebar .sidebar-brand strong), .studio :global(.workspace-brand span) { color:#f4f6fa; font-size:11px; letter-spacing:.07em; }
+.studio :global(.admin-sidebar .sidebar-brand span), .studio :global(.workspace-brand small) { color:#a6b5c8; font-size:9px; line-height:1.7; }
+.studio :global(.sidebar-church span) { color:#d1dcea; font-size:12px; }
+.studio :global(.sidebar-church small), .studio :global(.workspace-nav-label) { color:#9aabc1; font-size:10px; }
+.studio :global(.admin-sidebar nav button), .studio :global(.workspace-sidebar nav a), .studio :global(.workspace-sidebar .staff-nav button) { color:#b3c1d3; font-size:13px; font-weight:550; padding:15px; border-radius:12px; min-height:50px; }
+.studio :global(.admin-sidebar nav button:hover), .studio :global(.workspace-sidebar nav a:hover), .studio :global(.workspace-sidebar .staff-nav button:hover) { color:#fff; background:#ffffff0c; }
+.studio :global(.admin-sidebar nav button.active) { background:#f3d598; color:#172c40; box-shadow:0 6px 20px #00000014; }
+.studio :global(.dev-sidebar nav a.active) { background:#c6bafa; color:#2d2450; }
+.studio :global(.staff-sidebar .staff-nav button.active) { background:#a8ddc8; color:#153f34; }
+.studio :global(.sidebar-bottom), .studio :global(.workspace-side-footer) { border-color:#ffffff18; padding-top:22px; }
+.studio :global(.admin-sidebar .sidebar-bottom a), .studio :global(.admin-sidebar .sidebar-bottom button), .studio :global(.workspace-side-footer a), .studio :global(.workspace-side-footer button) { color:#c1cdde; font-size:12px; }
+.studio :global(.admin-main) { margin-left:260px; padding:0 clamp(24px,3vw,52px) 56px; }
+.studio :global(.staff-page), .studio :global(.dev-page) { padding:32px clamp(24px,3vw,52px) 56px calc(260px + clamp(24px,3vw,52px)); }
+.studio :global(.admin-header), .studio :global(.staff-top), .studio :global(.dev-top) { border-bottom:1px solid #dce2eb; min-height:110px; padding:24px 0; margin-bottom:28px; }
+.studio :global(.staff-top), .studio :global(.dev-top) { padding-top:0; min-height:85px; }
+.studio :global(.admin-header h1), .studio :global(.staff-brand h1), .studio :global(.dev-brand h1) { font:750 clamp(25px,2.4vw,34px)/1.2 Inter,ui-sans-serif,system-ui,sans-serif; letter-spacing:-1.2px; color:#182d43; margin:8px 0; }
+.studio :global(.admin-header p), .studio :global(.staff-brand p), .studio :global(.dev-brand p) { font-size:13px; color:#63758b; }
+.studio :global(.eyebrow), .studio :global(.dev-kicker), .studio :global(.staff-brand>div>span) { font-size:10px; color:#64778d; letter-spacing:.12em; font-weight:650; }
+.studio :global(.last-sync) { color:#60738a; font-size:11px; }
+.studio :global(.staff-role), .studio :global(.staff-signout), .studio :global(.dev-signout), .studio :global(.dev-home) { color:#405a74; font-size:12px; padding:12px 16px; border-radius:12px; }
+.studio :global(.welcome-strip), .studio :global(.staff-hero), .studio :global(.dev-hero) { position:relative; overflow:hidden; padding:36px 38px; border-radius:25px; min-height:230px; isolation:isolate; box-shadow:0 20px 40px #162c4310; border:1px solid #ffffff18; }
+.studio :global(.welcome-strip) { background:linear-gradient(115deg,#162c43 10%,#284e67 100%); }
+.studio :global(.staff-hero) { background:linear-gradient(115deg,#153f39,#307d69); }
+.studio :global(.dev-hero) { background:linear-gradient(115deg,#252340,#645791); }
+.studio :global(.welcome-strip)::after, .studio :global(.staff-hero)::after, .studio :global(.dev-hero)::after { content:""; position:absolute; width:330px; height:330px; border:50px solid #ffffff09; border-radius:50%; right:-50px; top:-80px; z-index:-1; opacity:1; }
+.studio :global(.welcome-strip)::before { display:none; }
+.studio :global(.welcome-strip h2), .studio :global(.staff-hero h2), .studio :global(.dev-hero h2) { font:650 clamp(28px,2.65vw,40px)/1.13 Inter,ui-sans-serif,system-ui,sans-serif; letter-spacing:-1.3px; color:white; margin:16px 0; }
+.studio :global(.welcome-strip p), .studio :global(.staff-hero p), .studio :global(.dev-hero p) { font-size:13px; line-height:1.8; color:#d3e1e9; max-width:540px; }
+.studio :global(.staff-hero p) { color:#d2e9df; }
+.studio :global(.dev-hero p) { color:#e0ddec; }
+.studio :global(.welcome-strip>div>span), .studio :global(.staff-hero>div>span), .studio :global(.dev-hero-copy>span) { color:#ecce91; font-size:10px; font-weight:650; letter-spacing:.16em; }
+.studio :global(.staff-hero>div>span) { color:#abe0cb; }
+.studio :global(.dev-hero-copy>span) { color:#d6cafa; }
+.studio :global(.welcome-actions button), .studio :global(.staff-hero-actions button) { font-size:12px; padding:15px 19px; border-radius:12px; min-height:46px; }
+.studio :global(.welcome-actions .outline-light) { color:white; background:#ffffff08; border:1px solid #ffffff40; }
+.studio :global(.dev-shield) { width:120px; height:120px; border-radius:35px; background:#ffffff09; border:1px solid #ffffff26; transform:rotate(-8deg); flex-shrink:0; }
+.studio :global(.metric-grid), .studio :global(.staff-stats), .studio :global(.dev-metrics) { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:18px; margin-bottom:32px; }
+.studio :global(.admin-shell .metric-card), .studio :global(.staff-stats>div), .studio :global(.dev-metric) { background:#fff; padding:24px; border:1px solid #dfe5ed; border-radius:19px; min-width:0; box-shadow:0 4px 16px #20354c04; }
+.studio :global(.admin-shell .metric-card:first-child), .studio :global(.staff-stats>div:first-child) { background:#1a3048; color:white; border-color:#1a3048; }
+.studio :global(.admin-shell .metric-card:first-child .metric-copy strong), .studio :global(.staff-stats>div:first-child strong) { color:#fff; }
+.studio :global(.admin-shell .metric-card:first-child .metric-copy span), .studio :global(.admin-shell .metric-card:first-child .metric-copy small), .studio :global(.staff-stats>div:first-child small) { color:#c2d1e1; }
+.studio :global(.admin-shell .metric-card:first-child .metric-icon), .studio :global(.staff-stats>div:first-child>svg) { background:#ffffff12; color:#f3d598; }
+.studio :global(.metric-copy strong), .studio :global(.staff-stats strong), .studio :global(.dev-metric strong) { font:730 clamp(24px,2.2vw,32px)/1.18 Inter,ui-sans-serif,system-ui,sans-serif; letter-spacing:-1px; color:#1d354e; margin:12px 0 8px; overflow-wrap:anywhere; }
+.studio :global(.metric-copy span), .studio :global(.staff-stats small), .studio :global(.dev-metric small) { color:#61748b; font-size:11px; font-weight:600; line-height:1.5; }
+.studio :global(.metric-copy small) { color:#65788b; font-size:11px; }
+.studio :global(.dev-metric strong) { font-size:25px; }
+.studio :global(.workspace-launch) { margin:32px 0; }
+.studio :global(.workspace-section-title) { display:flex; justify-content:space-between; align-items:flex-end; gap:20px; margin-bottom:18px; }
+.studio :global(.workspace-section-title span) { color:#697b91; font-size:10px; font-weight:700; letter-spacing:.14em; }
+.studio :global(.workspace-section-title h2) { margin:7px 0 0; font-size:23px; letter-spacing:-.6px; font-weight:700; }
+.studio :global(.workspace-section-title p) { margin:0; font-size:12px; color:#6c7e93; }
+.studio :global(.workspace-launch-grid) { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; }
+.studio :global(.workspace-launch-card) { position:relative; min-height:170px; padding:24px; text-align:left; border:1px solid #e4deee; border-radius:19px; background:#eeebf7; color:#544480; cursor:pointer; transition:transform .18s,box-shadow .18s; display:flex; align-items:flex-start; flex-direction:column; }
+.studio :global(.workspace-launch-card:hover) { transform:translateY(-4px); box-shadow:0 10px 25px #24334812; }
+.studio :global(.workspace-launch-card strong) { font-size:18px; letter-spacing:-.4px; margin:20px 0 6px; color:#24384f; }
+.studio :global(.launch-detail) { font-size:12px; line-height:1.5; color:#5b6d82; }
+.studio :global(.launch-number) { position:absolute; right:23px; top:22px; font-size:12px; opacity:.6; }
+.studio :global(.launch-arrow) { position:absolute; right:22px; bottom:24px; }
+.studio :global(.launch-gold) { background:#fbf0da; border-color:#eee1c8; color:#977633; }
+.studio :global(.launch-green) { background:#e4f1eb; border-color:#d5e8de; color:#36725c; }
+.studio :global(.launch-detail) { padding-right:20px; }
+.studio :global(.dashboard-grid), .studio :global(.staff-panels), .studio :global(.dev-grid) { gap:22px; }
+.studio :global(.dashboard-grid) { grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); }
+.studio :global(.admin-shell .card), .studio :global(.admin-shell .content-card), .studio :global(.staff-content), .studio :global(.staff-panel), .studio :global(.dev-card) { border:1px solid #e0e5ed; border-radius:22px; background:#fff; padding:28px; box-shadow:0 5px 20px #1e354705; }
+.studio :global(.staff-content .staff-panel) { box-shadow:none; padding:0; overflow:hidden; }
+.studio :global(.card-head h3), .studio :global(.toolbar h2), .studio :global(.staff-panel-head h3), .studio :global(.staff-section-head h2), .studio :global(.dev-card-head h3) { font:700 20px/1.3 Inter,ui-sans-serif,system-ui,sans-serif; color:#253c54; letter-spacing:-.5px; }
+.studio :global(.card-head>div>span), .studio :global(.dev-card-head>div>span), .studio :global(.staff-panel-head span), .studio :global(.staff-section-head>div>span) { color:#647990; font-size:10px; }
+.studio :global(.chart-area) { height:235px; }
+.studio :global(.bar-track) { background:#f0f3f7; }
+.studio :global(.bar-track i) { background:linear-gradient(#88b5c8,#315570); }
+.studio :global(.chart-total), .studio :global(.bar-column small), .studio :global(.bar-value) { color:#5c738a; font-size:11px; }
+.studio :global(.activity-item), .studio :global(.campaign-mini-list>div) { padding:19px 0; }
+.studio :global(.workspace-empty) { display:flex; flex-direction:column; align-items:center; text-align:center; padding:45px 20px; color:#58758d; }
+.studio :global(.workspace-empty strong) { margin-top:15px; font-size:15px; color:#2e475f; }
+.studio :global(.workspace-empty p) { color:#617990; font-size:12px; line-height:1.6; }
+.studio :global(.finance-snapshot) { background:#e7edf3; border:1px solid #d8e2ec; padding:30px; border-radius:22px; margin-top:24px; }
+.studio :global(.finance-snapshot h3) { font-size:24px; }
+.studio :global(.finance-snapshot p), .studio :global(.toolbar span), .studio :global(.staff-section-head p) { color:#62758b; font-size:12px; }
+.studio :global(.admin-shell thead th), .studio :global(.staff-table thead th), .studio :global(.security-screen thead th) { background:#f2f5f9; color:#58708a; padding:17px 20px; font-size:10px; }
+.studio :global(.admin-shell tbody td), .studio :global(.staff-table td), .studio :global(.security-screen tbody td) { color:#425e77; font-size:13px; padding:19px 20px; }
+.studio :global(.admin-shell tbody td small), .studio :global(.staff-table td small) { font-size:11px; color:#677e92; }
+.studio :global(.campaign-card h3), .studio :global(.staff-data-card h3) { font:700 21px/1.3 Inter,ui-sans-serif,system-ui,sans-serif; letter-spacing:-.6px; }
+.studio :global(.campaign-card p), .studio :global(.staff-data-card p) { color:#60758a; font-size:13px; line-height:1.75; }
+.studio :global(.campaign-image), .studio :global(.workspace-campaign-image) { height:200px; }
+.studio :global(.staff-data-card p) { display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+.studio :global(.staff-data-card) { padding:24px; }
+.studio :global(.workspace-campaign-image) { width:calc(100% + 48px); margin:-24px -24px 24px; }
+.studio :global(.staff-data-bottom span), .studio :global(.staff-data-top small), .studio :global(.campaign-row span), .studio :global(.campaign-row small), .studio :global(.staff-list-row span) { color:#647a8e; font-size:11px; }
+.studio :global(.staff-list-row strong), .studio :global(.campaign-row strong) { color:#2a465d; font-size:13px; }
+.studio :global(.staff-list-row b), .studio :global(.campaign-row b) { font-size:13px; }
+.studio :global(.staff-modal>header) { background:#173f37; color:#fff; }
+.studio :global(.staff-modal>header span) { color:#b6dfcf; }
+.studio :global(.staff-field span), .studio :global(.modal-form label) { font-size:11px; color:#526d80; }
+.studio :global(.staff-field input), .studio :global(.staff-field select), .studio :global(.staff-field textarea) { font-size:14px; padding:13px 14px; }
+.studio :global(.dev-action) { padding:23px; border-radius:16px; border-color:#e2dced; background:#f8f6fc; }
+.studio :global(.dev-action strong) { font-size:16px; color:#423b61; }
+.studio :global(.dev-action small) { font-size:12px; color:#716881; line-height:1.7; }
+.studio :global(.dev-action-icon) { width:44px; height:44px; background:#eae4f5; }
+.studio :global(.dev-session-main strong), .studio :global(.dev-audit-user strong) { font-size:13px; color:#33445c; overflow-wrap:anywhere; }
+.studio :global(.dev-session-main span), .studio :global(.dev-session-main small), .studio :global(.dev-audit-user span), .studio :global(.dev-audit-time small) { color:#6e7890; font-size:11px; }
+.studio :global(.dev-feed-row strong) { color:#3f4260; font-size:13px; }
+.studio :global(.dev-feed-row span), .studio :global(.dev-feed-row time), .studio :global(.dev-card-sub) { color:#6b7490; font-size:11px; line-height:1.6; }
+.studio :global(.dev-boundary p) { color:#6a6c84; font-size:12px; }
+.studio :global(.dev-boundary strong) { font-size:13px; }
+.studio :global(.dev-audit-card), .studio :global(.dev-governance) { margin-top:24px; }
+.studio :global(.staff-empty), .studio :global(.dev-no-sessions) { color:#667d8e; }
+.studio :global(.staff-empty strong) { font-size:14px; }
+.studio :global(.staff-empty span) { font-size:12px; }
+/* A split entry page keeps account access recognisable and separate from the public site. */
+.studio :global(.workspace-login) { padding:0; background:#f6f7fa; display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,1fr); align-items:center; min-height:100dvh; gap:0; }
+.studio :global(.login-story) { align-self:stretch; background:radial-gradient(ellipse at 90% 75%,#33586c 0,transparent 55%),#142c43; color:white; padding:clamp(32px,5vw,80px); display:flex; flex-direction:column; justify-content:space-between; gap:70px; min-height:100dvh; }
+.studio :global(.login-wordmark) { display:flex; align-items:center; gap:14px; color:#fff; font-size:12px; font-weight:700; letter-spacing:.1em; text-decoration:none; flex-wrap:wrap; }
+.studio :global(.login-wordmark img) { width:50px; height:54px; object-fit:contain; background:#fff; padding:4px; border-radius:12px; }
+.studio :global(.login-wordmark span) { color:#d7bd87; }
+.studio :global(.login-kicker) { font-size:10px; letter-spacing:.17em; color:#ebce96; }
+.studio :global(.login-story h2) { font:600 clamp(36px,4.3vw,65px)/1.09 Inter,ui-sans-serif,system-ui,sans-serif; letter-spacing:-2px; margin:25px 0; }
+.studio :global(.login-story h2 em) { font:italic 500 1.12em Georgia,serif; color:#f2d59c; }
+.studio :global(.login-story p) { max-width:370px; color:#c4d5e1; font-size:14px; line-height:1.85; }
+.studio :global(.login-roles) { display:flex; flex-wrap:wrap; gap:8px; margin-top:26px; }
+.studio :global(.login-roles span) { color:#dce8ef; border:1px solid #ffffff25; border-radius:30px; padding:9px 13px; font-size:11px; }
+.studio :global(.login-public) { color:#c8dce9; text-decoration:none; font-size:12px; }
+.studio :global(.workspace-login-card) { width:min(460px,calc(100% - 64px)); background:transparent; border:0; box-shadow:none; padding:30px 10px; margin:50px auto; border-radius:0; }
+.studio :global(.workspace-login-card h1) { font:750 38px/1.2 Inter,ui-sans-serif,system-ui,sans-serif; letter-spacing:-1.5px; margin:15px 0; }
+.studio :global(.workspace-login-card p) { font-size:14px; line-height:1.8; color:#667c90; margin-bottom:35px; }
+.studio :global(.workspace-login-card form) { gap:22px; }
+.studio :global(.workspace-login-card input) { border:1px solid #d8e1eb; border-radius:12px; min-height:52px; padding:14px 16px; }
+.studio :global(.workspace-login-card form>button) { background:#1a354e; border-radius:12px; min-height:52px; font-size:14px; }
+.studio :global(button:focus-visible), .studio :global(a:focus-visible) { outline:3px solid #b38d43; outline-offset:4px; }
+@media(min-width:1400px) { .studio :global(.dev-grid) { grid-template-columns:1.1fr 1fr; } }
+@media(max-width:1200px) { .studio :global(.metric-grid), .studio :global(.staff-stats), .studio :global(.dev-metrics) { grid-template-columns:repeat(2,minmax(0,1fr)); } .studio :global(.dashboard-grid) { grid-template-columns:1fr; } .studio :global(.workspace-launch-card) { padding:20px; } .studio :global(.workspace-launch-card strong) { font-size:16px; } .studio :global(.welcome-strip), .studio :global(.staff-hero) { flex-wrap:wrap; gap:22px; } }
+@media(max-width:900px) { .studio :global(.workspace-sidebar) { position:relative; width:100%; background:transparent; padding:0; border:0; box-shadow:none; } .studio :global(.workspace-sidebar nav), .studio :global(.workspace-sidebar .staff-nav) { background:#172d43; border:0; border-radius:15px; padding:7px; } .studio :global(.workspace-sidebar nav a), .studio :global(.workspace-sidebar .staff-nav button) { width:auto; padding:13px 16px; font-size:12px; } .studio :global(.staff-page), .studio :global(.dev-page) { padding:25px 22px 48px; } .studio :global(.workspace-section-title) { align-items:flex-start; flex-direction:column; gap:10px; } .studio :global(.dev-shield) { width:80px; height:80px; border-radius:24px; } }
+@media(max-width:760px) { .studio :global(.admin-main) { margin-left:0; padding:0 20px 40px; } .studio :global(.welcome-strip), .studio :global(.staff-hero), .studio :global(.dev-hero) { padding:28px; } .studio :global(.workspace-launch-grid) { grid-template-columns:1fr; gap:12px; } .studio :global(.workspace-launch-card) { min-height:110px; padding:23px 58px 23px 78px; justify-content:center; } .studio :global(.workspace-launch-card>svg:first-of-type) { position:absolute; top:39px; left:25px; } .studio :global(.workspace-launch-card strong) { margin:0 0 6px; font-size:18px; } .studio :global(.launch-number) { display:none; } .studio :global(.launch-arrow) { bottom:45px; } .studio :global(.launch-detail) { padding:0; } .studio :global(.admin-header) { padding:23px 0; } .studio :global(.admin-shell .metric-card) { padding:22px 18px; } .studio :global(.workspace-login) { grid-template-columns:1fr; } .studio :global(.login-story) { min-height:auto; padding:26px 30px 32px; gap:28px; } .studio :global(.login-story h2) { font-size:36px; margin:14px 0; } .studio :global(.login-story h2 br:nth-of-type(2)) { display:none; } .studio :global(.login-story p), .studio :global(.login-roles), .studio :global(.login-public) { display:none; } .studio :global(.workspace-login-card) { margin:24px auto; width:calc(100% - 54px); } }
+@media(max-width:540px) { .studio :global(.staff-page), .studio :global(.dev-page) { padding:20px 15px 40px; } .studio :global(.metric-grid), .studio :global(.staff-stats), .studio :global(.dev-metrics) { gap:12px; } .studio :global(.staff-stats>div), .studio :global(.dev-metric) { padding:19px 16px; } .studio :global(.metric-copy strong), .studio :global(.staff-stats strong), .studio :global(.dev-metric strong) { font-size:24px; } .studio :global(.dev-metric strong) { font-size:20px; } .studio :global(.dev-hero), .studio :global(.staff-hero), .studio :global(.welcome-strip) { padding:26px 24px; min-height:0; } .studio :global(.dev-hero h2), .studio :global(.staff-hero h2), .studio :global(.welcome-strip h2) { font-size:30px; } .studio :global(.staff-content), .studio :global(.dev-card), .studio :global(.admin-shell .card), .studio :global(.admin-shell .content-card) { padding:22px; } .studio :global(.workspace-section-title h2) { font-size:21px; } .studio :global(.staff-stats small) { font-size:10px; } .studio :global(.dev-action) { padding:18px; } .studio :global(.dev-action small) { font-size:11px; } .studio :global(.dev-action strong) { font-size:14px; } .studio :global(.dev-action-icon) { display:none; } .studio :global(.login-wordmark span) { display:none; } }
+@media(prefers-reduced-motion:reduce) { .studio * { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
+.studio :global(.security-screen h1) { font-size:34px; letter-spacing:-1px; color:#25344c; }
+.studio :global(.security-screen .metric-grid) { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.studio :global(.security-screen .metric-card) { padding:25px; border:1px solid #e0e5ed; border-radius:20px; background:#fff; display:flex; gap:15px; }
+.studio :global(.security-screen .metric-icon) { background:#eee9f8; color:#6c5596; border-radius:13px; width:45px; height:45px; display:grid; place-items:center; }
+.studio :global(.security-screen .finance-table) { overflow:auto; border:1px solid #e2e8ef; border-radius:14px; }
+.studio :global(.security-screen table) { min-width:720px; width:100%; border-collapse:collapse; }
+.studio :global(.security-screen .security-box) { border-radius:16px; padding:22px; background:#eeeaf6; color:#53496d; }
+@media(max-width:680px) { .studio :global(.security-screen .metric-grid) { grid-template-columns:1fr; } }
+.studio :global(.user-modal-shell) { border-radius:25px; box-shadow:0 30px 120px #08152555; }
+.studio :global(.user-modal-head) { background:linear-gradient(110deg,#1c2942,#514770); padding:28px; }
+.studio :global(.user-modal-head h3) { font:700 27px/1.25 Inter,ui-sans-serif,system-ui,sans-serif; letter-spacing:-.8px; }
+.studio :global(.user-modal-grid) { gap:24px; padding:26px; }
+.studio :global(.user-list-row) { padding:18px; }
+.studio :global(.user-main strong) { font-size:14px; }
+.studio :global(.user-main span) { font-size:12px; color:#63778c; }
+.studio :global(.user-role-pill), .studio :global(.user-active), .studio :global(.user-inactive) { font-size:11px; }
+.studio :global(.user-section-head h4) { font:700 19px/1.3 Inter,ui-sans-serif,system-ui,sans-serif; letter-spacing:-.4px; }
+.studio :global(.staff-profile-copy h2) { font:700 28px/1.25 Inter,ui-sans-serif,system-ui,sans-serif; letter-spacing:-.8px; }
+.studio :global(.staff-profile-copy p) { font-size:13px; color:#637b8e; }
+.studio :global(.staff-profile-copy>span), .studio :global(.staff-profile-copy b), .studio :global(.staff-profile-copy>div span) { font-size:11px; }
+.studio :global(.dev-no-sessions), .studio :global(.staff-empty) { font-size:13px; }
+@media(max-width:540px) { .studio :global(.user-modal-grid) { padding:18px; } .studio :global(.user-modal-head) { padding:22px; } }
