@@ -1,0 +1,12 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),ts=require('typescript');
+const compiled=ts.transpileModule(fs.readFileSync('src/lib/payments/donation-receipt.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+const context={exports:{},require,console};vm.runInNewContext(compiled,context);
+const build=context.exports.buildDonationReceipt,logo='data:image/png;base64,AA==';
+const gift={id:'gift-123',status:'completed',amount:5.25,donation_type:'general',payment_method:'Card',transaction_id:'pi_test',created_at:'2026-10-03T18:17:00Z',donor_name:'<script>alert(1)</script>',donor_email:'test@example.com'};
+const church={name:'House of Ezra Worldwide Ministries',assembly:'Jehovah Adonai Assembly',address:'Official address\nSecond line',contacts:'+1 555 <123>',email:'church@example.com'};
+const html=build(gift,church,logo,false);
+assert(html.includes('$5.25'));assert(html.includes(logo));assert(html.includes('Official address'));assert(html.includes('+1 555 &lt;123&gt;'));assert(html.includes('&lt;script&gt;alert(1)&lt;/script&gt;'));assert(!html.includes('<script>'));assert(html.includes('Print / Save as PDF'));assert(!html.includes('SANDBOX / TEST MODE'));
+const test=build(gift,church,logo,true);assert(test.includes('No real money was collected'));assert(test.includes('Test Donation Receipt'));
+for(const status of ['pending','failed','refunded'])assert.throws(()=>build({...gift,status},church,logo,false));
+assert.throws(()=>build({...gift,amount:NaN},church,logo,false));assert.throws(()=>build(gift,church,'javascript:alert(1)',false));
+console.log('Passed receipt formatting, embedded logo, contact details, escaping, test labeling and unconfirmed-gift guards.');

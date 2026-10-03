@@ -8,6 +8,8 @@ import GivingSelector from "../components/GivingSelector";
 import { Heart, ArrowUpRight, Sprout, Church, ChevronDown, CreditCard } from "lucide-react";
 import type { Campaign } from "../lib/data";
 
+import { downloadDonationReceipt } from "../lib/payments/donation-receipt";
+const DonationResult = dynamic(() => import("../components/DonationResult"));
 const PayPalSandboxCheckout = dynamic(() => import("../components/PayPalSandboxCheckout"), { ssr: false });
 const StripePaymentForm = dynamic(() => import("../components/StripePaymentForm"), { ssr: false });
 
@@ -48,6 +50,7 @@ export default function Home() {
   const [confirmationError, setConfirmationError] = useState("");
   const [campaignError, setCampaignError] = useState("");
   const [paymentComplete, setPaymentComplete] = useState(false);
+  const [cardFailure, setCardFailure] = useState("");
 
   useEffect(() => {
     const loadCampaigns = async () => {
@@ -68,7 +71,7 @@ export default function Home() {
   const scrollHome = () => window.scrollTo({ top: 0, behavior: "smooth" });
   const scrollToFundraising = () => document.getElementById("fundraising")?.scrollIntoView({ behavior: "smooth", block: "start" });
   const openCampaign = (campaign: Campaign) => { setSelected(campaign); setModal("campaign"); };
-  const openGive = (campaign?: Campaign) => { setMethodLocked(false); setCopyMessage(""); setPaymentMethod("Card"); if (campaign) setSelected(campaign); setClientSecret(""); setPaymentError(""); setPaymentComplete(false); setConfirmedGift(null); setReceiptToken(""); setRecurringConsent(false); setModal("give"); };
+  const openGive = (campaign?: Campaign) => { setCardFailure(""); setMethodLocked(false); setCopyMessage(""); setPaymentMethod("Card"); if (campaign) setSelected(campaign); setClientSecret(""); setPaymentError(""); setPaymentComplete(false); setConfirmedGift(null); setReceiptToken(""); setRecurringConsent(false); setModal("give"); };
 
   const givingType = selected.id === "tithe" ? "tithe" : selected.id === "0" ? "general" : selected.id === "offering" ? "offering" : "campaign";
   const givingCampaignId = givingType === "campaign" && selected.id !== "campaign-gift" ? selected.id : "";
@@ -97,7 +100,7 @@ export default function Home() {
   }
 
   const startStripePayment = async (method = paymentMethod) => {
-    setClientSecret(""); setPaymentComplete(false); setConfirmedGift(null); setReceiptToken(""); setConfirmationError("");
+    setCardFailure(""); setClientSecret(""); setPaymentComplete(false); setConfirmedGift(null); setReceiptToken(""); setConfirmationError("");
     setPaymentError("");
     const validationError = validateGift(); if (validationError) { setPaymentError(validationError); return; }
     if (givingType === "campaign" && !givingCampaignId) { setPaymentError("Choose a campaign for a Campaign Gift."); return; }
@@ -134,11 +137,12 @@ export default function Home() {
     };
     void poll(); return () => { stopped = true; clearTimeout(timer); };
   }, [paymentComplete,receiptToken]);
-  function downloadReceipt() {
+  async function downloadReceipt() {
     if (confirmedGift?.status !== 'completed') return;
-    const content = ['HOUSE OF EZRA GIVING','Donation receipt',`Reference: ${confirmedGift.id}`,`Confirmed: ${new Date(confirmedGift.completed_at || confirmedGift.created_at).toLocaleString()}`,`Amount: ${money(Number(confirmedGift.amount))} USD`,`Giving type: ${confirmedGift.donation_type}`,`Payment method: ${confirmedGift.payment_method}`,`Transaction: ${confirmedGift.transaction_id}`,'Status: Confirmed','Thank you for supporting the ministry.'].join('\n');
-    const url = URL.createObjectURL(new Blob([content], {type:'text/plain'}));
-    const anchor = document.createElement('a'); anchor.href=url; anchor.download=`Ezracash-Receipt-${confirmedGift.id}.txt`; anchor.click(); URL.revokeObjectURL(url);
+    try {
+      await downloadDonationReceipt(confirmedGift,providerConfig?.receiptChurch || {name:'House of Ezra Worldwide Ministries',assembly:'Jehovah Adonai Assembly'},providerConfig?.stripe?.mode === 'test');
+      setConfirmationError('');
+    } catch (error) { setConfirmationError(error instanceof Error ? error.message : 'Could not download your receipt. Please try again.'); }
   }
 
   // Keep keyboard focus inside the dialog and restore it when the dialog closes.
@@ -303,7 +307,9 @@ return (
         <div className={styles.modalBackdrop} onMouseDown={(e) => { if (e.target === e.currentTarget && !checkoutBusyRef.current) setModal(null); }}>
           <div ref={dialogRef} tabIndex={-1} className={styles.modal} role="dialog" aria-modal="true" aria-label={modal === "give" ? "Give now" : modal === "payment" ? "Payment" : selected.title}>
             <button className={styles.closeButton} disabled={checkoutBusy} onClick={() => setModal(null)} aria-label="Close">×</button>
-            {modal === "campaign" ? (
+            {modal === "payment" && (paymentComplete || cardFailure) ? (
+              <DonationResult status={cardFailure ? "failed" : confirmedGift?.status === "completed" ? "success" : confirmedGift?.status === "failed" ? "failed" : confirmedGift?.status === "refunded" ? "refunded" : "pending"} amount={money(Number(confirmedGift?.amount ?? amount))} testMode={providerConfig?.stripe?.mode === "test"} error={cardFailure || confirmationError} onClose={()=>setModal(null)} onCheck={()=>{setCardFailure("");setPaymentComplete(true);void checkConfirmation();}} onReceipt={confirmedGift?.status === "completed" ? downloadReceipt : undefined} onRetry={cardFailure ? ()=>setCardFailure("") : undefined} />
+            ) : modal === "campaign" ? (
               <>
                 <div className={styles.modalImage} style={{ backgroundImage: `url(${selected.image})` }} />
                 <div className={styles.modalContent}>
@@ -357,7 +363,7 @@ return (
                 </div>
                 {paymentMethod === "Card" && providerConfig?.stripe?.mode === "test" && <div className={styles.paymentNotice}>Test mode · No real donation is collected.</div>}
                 {paymentMethod === "Card" ? (
-                  paymentComplete ? <section className={styles.confirmationPanel} aria-live="polite"><div className={styles.confirmationMark}>{confirmedGift?.status === 'completed' ? '✓' : '…'}</div><h3>{confirmedGift?.status === 'completed' ? 'Your gift is confirmed' : confirmedGift?.status === 'failed' ? 'Payment not confirmed' : 'Confirming your gift'}</h3><p>{confirmedGift?.status === 'completed' ? 'Thank you for supporting the ministry. Your donation has been recorded.' : confirmedGift?.status === 'failed' ? 'The ministry record reports that this payment failed. Contact the ministry if your bank shows a charge.' : 'Your payment has been submitted. We are waiting for the payment confirmation. Please do not pay again.'}</p><strong>{money(amount)} USD</strong>{confirmationError && <p role="alert">{confirmationError}</p>}{confirmedGift?.status === 'completed' ? <button type="button" className={styles.fullGoldButton} onClick={downloadReceipt}>Download receipt ↓</button> : <button type="button" className={styles.backButton} onClick={checkConfirmation}>Check confirmation</button>}</section> : clientSecret ? <StripePaymentForm clientSecret={clientSecret} donationId="" amount={money(amount || 0)} onBusyChange={onCheckoutBusy} onSuccess={()=>setPaymentComplete(true)} /> : <div className={styles.paymentPanel}>
+                  clientSecret ? <StripePaymentForm clientSecret={clientSecret} donationId="" amount={money(amount || 0)} onBusyChange={onCheckoutBusy} onSuccess={()=>setPaymentComplete(true)} onFailure={setCardFailure} /> : <div className={styles.paymentPanel}>
                     <p className={styles.modalIntro}>Use your card, or donate with Apple Pay or Google Pay on a supported device.</p>
                     <button className={styles.fullGoldButton} type="button" disabled={paymentLoading} onClick={() => void startStripePayment("Card")}>{paymentLoading ? "Preparing secure checkout…" : "Try card checkout again"} <span>→</span></button>
                     {paymentError&&<div className="payment-error" role="alert">{paymentError}</div>}

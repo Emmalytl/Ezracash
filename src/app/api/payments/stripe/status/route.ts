@@ -8,7 +8,7 @@ export async function GET(request: Request) {
     const id = verifyReceiptToken(token);
     if (!id) return NextResponse.json({error:'This confirmation link has expired. Contact the ministry for your receipt.'},{status:401});
     const sql = sqlClient();
-    const rows = await sql`SELECT id,status,amount,donation_type,payment_method,payment_provider,transaction_id,created_at,completed_at FROM donations WHERE id=${id} AND payment_provider='stripe' LIMIT 1`;
+    const rows = await sql`SELECT id,status,amount,donor_name,donor_email,donation_type,payment_method,payment_provider,transaction_id,created_at,completed_at FROM donations WHERE id=${id} AND payment_provider='stripe' LIMIT 1`;
     if (!rows[0]) return NextResponse.json({error:'Donation not found.'},{status:404});
     return NextResponse.json(rows[0], {headers:{'Cache-Control':'no-store'}});
   } catch {

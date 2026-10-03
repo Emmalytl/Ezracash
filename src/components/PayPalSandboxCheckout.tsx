@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { downloadDonationReceipt } from '@/lib/payments/donation-receipt';
 
 type Gift = { amount: number; donation_type: string; campaign_id: string | null; donor_name: string; donor_email: string; frequency: string };
 // SDK-owned fields keep account credentials out of House of Ezra's forms.
@@ -81,12 +82,17 @@ export default function PayPalSandboxCheckout({ clientId, method, gift, onBusyCh
     }).catch(failure => { if (!stopped) setError(failure.message || 'Could not load sandbox checkout.'); });
     return () => { stopped = true; busyCallback.current?.(false); if (buttons) void buttons.close().catch(() => {}); };
   }, [clientId, method]);
-  function download() {
+  async function download() {
     if (result?.status !== 'completed') return;
-    const content = `HOUSE OF EZRA — SANDBOX TEST RECEIPT\nNo real money moved. Not a tax receipt.\nReference: ${result.id}\nAmount: USD ${Number(result.amount).toFixed(2)}\nMethod: ${result.payment_method}\nOrder: ${result.transaction_id}\nStatus: ${result.status}`;
-    const url = URL.createObjectURL(new Blob([content], { type: 'text/plain' }));
-    const link = document.createElement('a'); link.href = url; link.download = `Ezracash-Sandbox-${result.id}.txt`; link.click(); URL.revokeObjectURL(url);
+    try {
+      const response=await fetch('/api/payments/config',{cache:'no-store'});
+      if(!response.ok) throw new Error('Could not load receipt details. Please try again.');
+      const config=await response.json();
+      await downloadDonationReceipt(result,config.receiptChurch,true);
+      setError('');
+    } catch(failure) { setError(failure instanceof Error ? failure.message : 'Could not download your receipt.'); }
   }
+
   return <section aria-label={`${method} sandbox checkout`} style={{ padding: '20px', border: '1px solid #d9e2ee', borderRadius: 18, background: '#f8fafc' }}>
     <strong style={{ color: '#92400e' }}>TEST MODE · No real money</strong>
     <p aria-live="polite">{message}</p>
