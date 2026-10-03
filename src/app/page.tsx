@@ -8,12 +8,13 @@ import GivingSelector from "../components/GivingSelector";
 import { Heart, ArrowUpRight, Sprout, Church, ChevronDown, CreditCard } from "lucide-react";
 import type { Campaign } from "../lib/data";
 
+const PayPalSandboxCheckout = dynamic(() => import("../components/PayPalSandboxCheckout"), { ssr: false });
 const StripePaymentForm = dynamic(() => import("../components/StripePaymentForm"), { ssr: false });
 
 
 
 
-const money = (n: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
+const money = (n: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(n);
 
 
 const progress = (c: Campaign) => c.goal > 0 ? Math.min(100, Math.max(0, Math.round(c.amount / c.goal * 100))) : 0;
@@ -32,6 +33,8 @@ export default function Home() {
   const [providerConfig, setProviderConfig] = useState<any>(null);
   useEffect(() => { fetch('/api/payments/config', {cache:'no-store'}).then(r => { if (!r.ok) throw new Error(); return r.json(); }).then(setProviderConfig).catch(() => setProviderConfig(null)); }, []);
   const [paymentMethod, setPaymentMethod] = useState("Card");
+  const [methodLocked, setMethodLocked] = useState(false);
+  const [copyMessage, setCopyMessage] = useState("");
   const [donorName, setDonorName] = useState("");
   const [donorEmail, setDonorEmail] = useState("");
   const [clientSecret, setClientSecret] = useState("");
@@ -65,7 +68,7 @@ export default function Home() {
   const scrollHome = () => window.scrollTo({ top: 0, behavior: "smooth" });
   const scrollToFundraising = () => document.getElementById("fundraising")?.scrollIntoView({ behavior: "smooth", block: "start" });
   const openCampaign = (campaign: Campaign) => { setSelected(campaign); setModal("campaign"); };
-  const openGive = (campaign?: Campaign) => { setPaymentMethod("Card"); if (campaign) setSelected(campaign); setClientSecret(""); setPaymentError(""); setPaymentComplete(false); setConfirmedGift(null); setReceiptToken(""); setRecurringConsent(false); setModal("give"); };
+  const openGive = (campaign?: Campaign) => { setMethodLocked(false); setCopyMessage(""); setPaymentMethod("Card"); if (campaign) setSelected(campaign); setClientSecret(""); setPaymentError(""); setPaymentComplete(false); setConfirmedGift(null); setReceiptToken(""); setRecurringConsent(false); setModal("give"); };
 
   const givingType = selected.id === "tithe" ? "tithe" : selected.id === "0" ? "general" : selected.id === "offering" ? "offering" : "campaign";
   const givingCampaignId = givingType === "campaign" && selected.id !== "campaign-gift" ? selected.id : "";
@@ -330,7 +333,7 @@ return (
             ) : (
               <div className={`${styles.modalContent} ${styles.paymentContent}`}>
                 <div className={styles.paymentTop}>
-                  <button className={styles.backButton} disabled={paymentComplete || paymentLoading || checkoutBusy} type="button" onClick={() => setModal("give")}>← Back</button>
+                  <button className={styles.backButton} disabled={paymentComplete || paymentLoading || checkoutBusy || methodLocked} type="button" onClick={() => setModal("give")}>← Back</button>
                   <div className={styles.modalKicker}>HOUSE OF EZRA GIVING</div>
                 </div>
                 <h2>Payment method</h2>
@@ -339,13 +342,15 @@ return (
                   <label htmlFor="payment-method">How would you like to give?</label>
                   <div className={styles.paymentSelectWrap}>
                     <CreditCard size={20} aria-hidden="true" />
-                    <select id="payment-method" value={paymentMethod} disabled={paymentLoading || paymentComplete || checkoutBusy} onChange={event => {
+                    <select id="payment-method" value={paymentMethod} disabled={paymentLoading || paymentComplete || checkoutBusy || methodLocked} onChange={event => {
                       const method = event.target.value;
-                      setPaymentMethod(method); setPaymentError("");
+                      setPaymentMethod(method); setPaymentError(""); setCopyMessage("");
                       if (method === "Card" && !clientSecret) void startStripePayment("Card");
                     }}>
-                      <option value="Card">Card</option>
-                      <option value="Zelle">Zelle</option>
+                      <option value="Card">Card · Apple Pay / Google Pay</option>
+                      <option value="PayPal">PayPal</option>
+                      <option value="Venmo">Venmo</option>
+                      <option value="Zelle">Zelle · Bank transfer</option>
                     </select>
                     <ChevronDown size={18} aria-hidden="true" />
                   </div>
@@ -357,12 +362,21 @@ return (
                     <button className={styles.fullGoldButton} type="button" disabled={paymentLoading} onClick={() => void startStripePayment("Card")}>{paymentLoading ? "Preparing secure checkout…" : "Try card checkout again"} <span>→</span></button>
                     {paymentError&&<div className="payment-error" role="alert">{paymentError}</div>}
                   </div>
+                ) : paymentMethod === "PayPal" || paymentMethod === "Venmo" ? (
+                  providerConfig?.[paymentMethod.toLowerCase()]?.configured && providerConfig?.paypal?.clientId ?
+                    <PayPalSandboxCheckout key={paymentMethod} clientId={providerConfig.paypal.clientId} method={paymentMethod as "PayPal" | "Venmo"} gift={{amount,donation_type:givingType,campaign_id:givingCampaignId||null,donor_name:donorName||"Anonymous",donor_email:donorEmail,frequency}} onBusyChange={onCheckoutBusy} onSubmitted={()=>setMethodLocked(true)} /> :
+                    <section className={styles.zellePanel} aria-live="polite"><span className={styles.paymentStatus}>Setup required</span><h3>{paymentMethod} donations</h3><p>{paymentMethod === "Venmo" ? "Venmo uses PayPal and requires an eligible US merchant and donor. Sandbox setup hasn’t been completed yet." : "PayPal sandbox hasn’t been connected yet. Please choose Card to complete a test gift."}</p><button type="button" className={styles.backButton} onClick={()=>{setPaymentMethod("Card");if(!clientSecret)void startStripePayment("Card");}}>Use Card instead →</button></section>
                 ) : (
                   <section className={styles.zellePanel} aria-live="polite">
-                    <span className={styles.paymentStatus}>Setup required</span>
+                    <span className={styles.paymentStatus}>{!providerConfig?.zelle?.configured ? "Setup required" : providerConfig.zelle.mode === "test" ? "Test preview · No transfer" : "Bank transfer · Manual verification"}</span>
                     <h3>Give with Zelle</h3>
-                    <p>The ministry’s Zelle recipient details haven’t been configured yet. Please choose Card to complete your gift.</p>
-                    <button type="button" className={styles.backButton} onClick={() => { setPaymentMethod("Card"); if (!clientSecret) void startStripePayment("Card"); }}>Use Card instead →</button>
+                    {!providerConfig?.zelle?.configured ? <p>The ministry’s Zelle recipient details haven’t been configured yet. Choose another payment method.</p> : providerConfig.zelle.mode === "test" ? <p>This is a preview of the Zelle instructions. No recipient is displayed and no money should be sent. Test previews are excluded from donation totals.</p> : <>
+                      <p>Open Zelle in your banking app. Verify the recipient name before sending <strong>{money(amount)} USD</strong>.</p>
+                      <dl className={styles.zelleDetails}><div><dt>Recipient</dt><dd>{providerConfig.zelle.recipientName}</dd></div><div><dt>{providerConfig.zelle.recipientType === "phone" ? "Phone number" : "Email address"}</dt><dd>{providerConfig.zelle.recipient}</dd></div><div><dt>Gift memo</dt><dd>{selected.title} · {donorName || "Anonymous"}</dd></div></dl>
+                      <button type="button" className={styles.backButton} onClick={async()=>{try{await navigator.clipboard.writeText(providerConfig.zelle.recipient);setCopyMessage("Recipient copied.");}catch{setCopyMessage("Select and copy the recipient shown above.");}}}>Copy recipient</button>
+                      {copyMessage && <p role="status">{copyMessage}</p>}
+                      <p className={styles.zelleFootnote}>Keep your bank confirmation. The ministry records your gift after checking that it has arrived in its bank account. This page does not send money or confirm a transfer.</p>
+                    </>}
                   </section>
                 )}
 

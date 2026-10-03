@@ -19,13 +19,16 @@ function loadSandboxSDK(clientId: string) {
   });
   return sdkPromise;
 }
-export default function PayPalSandboxCheckout({ clientId, method, gift }: { clientId: string; method: 'PayPal' | 'Venmo'; gift: Gift }) {
+export default function PayPalSandboxCheckout({ clientId, method, gift, onBusyChange, onSubmitted }: { clientId: string; method: 'PayPal' | 'Venmo'; gift: Gift; onBusyChange?: (busy:boolean)=>void; onSubmitted?: ()=>void }) {
   const container = useRef<HTMLDivElement>(null);
   const receipt = useRef('');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('Preparing sandbox checkout…');
   const [result, setResult] = useState<any>(null);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusyState] = useState(false);
+  const busyCallback = useRef(onBusyChange); busyCallback.current = onBusyChange;
+  const submittedCallback = useRef(onSubmitted); submittedCallback.current = onSubmitted;
+  function setBusy(value:boolean) { setBusyState(value); busyCallback.current?.(value); }
   const [submitted, setSubmitted] = useState(false);
   const currentGift = useRef(gift); currentGift.current = gift;
   async function check() {
@@ -57,10 +60,10 @@ export default function PayPalSandboxCheckout({ clientId, method, gift }: { clie
             receipt.current = data.receiptToken;
             sessionStorage.setItem('ezra-paypal-sandbox-receipt', data.receiptToken);
             return data.orderId;
-          } finally { if (!stopped) setBusy(false); }
+          } catch (failure) { if (!stopped) setBusy(false); throw failure; }
         },
         onApprove: async (data: { orderID: string }) => {
-          if (!stopped) { setSubmitted(true); setBusy(true); setMessage('Confirming sandbox payment…'); }
+          if (!stopped) { setSubmitted(true); submittedCallback.current?.(); setBusy(true); setMessage('Confirming sandbox payment…'); }
           try {
             const response = await fetch('/api/payments/paypal/capture', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${receipt.current}` }, body: JSON.stringify({ orderId: data.orderID }) });
             const body = await response.json();
@@ -76,7 +79,7 @@ export default function PayPalSandboxCheckout({ clientId, method, gift }: { clie
       setMessage(method === 'Venmo' ? 'Venmo sandbox simulates payment. It does not charge a real Venmo account.' : 'Sign in using a PayPal sandbox PERSONAL buyer account, separate from the receiving business account.');
       await buttons.render(container.current);
     }).catch(failure => { if (!stopped) setError(failure.message || 'Could not load sandbox checkout.'); });
-    return () => { stopped = true; if (buttons) void buttons.close().catch(() => {}); };
+    return () => { stopped = true; busyCallback.current?.(false); if (buttons) void buttons.close().catch(() => {}); };
   }, [clientId, method]);
   function download() {
     if (result?.status !== 'completed') return;
