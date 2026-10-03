@@ -13,7 +13,7 @@ export function paymentConfiguration() {
   const zelleConfigured = process.env.ZELLE_ENABLED === 'true' && Boolean(recipientName && validRecipient);
   const zelleMode = process.env.ZELLE_MODE === 'live' ? 'live' : 'test';
   return {
-    receiptChurch: {name:"House of Ezra Worldwide Ministries",assembly:"Jehovah Adonai Assembly",address:(process.env.CHURCH_RECEIPT_ADDRESS||"").trim().slice(0,600),contacts:(process.env.CHURCH_RECEIPT_CONTACTS||"").trim().slice(0,200),email:(process.env.CHURCH_RECEIPT_EMAIL||"").trim().slice(0,320)},
+    receiptChurch: {name:"House of Ezra Worldwide Ministries",assembly:"Jehovah Adonai Assembly",address:(process.env.CHURCH_RECEIPT_ADDRESS||"6030 Highway 85, Suite 206\nRiverdale, GA 30274").trim().slice(0,600),contacts:(process.env.CHURCH_RECEIPT_CONTACTS||"850-712-8760 / 850-417-3107").trim().slice(0,200),email:(process.env.CHURCH_RECEIPT_EMAIL||"").trim().slice(0,320)},
     stripe: { configured: stripeConfigured, mode: stripeConfigured ? stripeMode : 'unconfigured', methods: ['Card', 'Apple Pay', 'Google Pay'] },
     paypal: { configured: paypalConfigured, mode: paypalConfigured ? 'sandbox' : 'unconfigured', clientId: paypalConfigured ? process.env.PAYPAL_CLIENT_ID : null },
     venmo: { configured: paypalConfigured && process.env.PAYPAL_VENMO_ENABLED === 'true', mode: paypalConfigured && process.env.PAYPAL_VENMO_ENABLED === 'true' ? 'sandbox' : 'unconfigured' },

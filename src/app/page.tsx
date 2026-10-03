@@ -140,7 +140,7 @@ export default function Home() {
   async function downloadReceipt() {
     if (confirmedGift?.status !== 'completed') return;
     try {
-      await downloadDonationReceipt(confirmedGift,providerConfig?.receiptChurch || {name:'House of Ezra Worldwide Ministries',assembly:'Jehovah Adonai Assembly'},providerConfig?.stripe?.mode === 'test');
+      await downloadDonationReceipt(confirmedGift,providerConfig?.receiptChurch || {name:'House of Ezra Worldwide Ministries',assembly:'Jehovah Adonai Assembly',address:'6030 Highway 85, Suite 206\nRiverdale, GA 30274',contacts:'850-712-8760 / 850-417-3107'},providerConfig?.stripe?.mode === 'test');
       setConfirmationError('');
     } catch (error) { setConfirmationError(error instanceof Error ? error.message : 'Could not download your receipt. Please try again.'); }
   }

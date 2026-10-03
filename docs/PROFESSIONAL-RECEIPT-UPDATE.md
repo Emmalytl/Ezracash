@@ -4,14 +4,19 @@ Includes the prior donation result popup and corrected login. Implementation bas
 
 Confirmed one-time Stripe gifts and confirmed PayPal/Venmo sandbox gifts now download a standalone HTML receipt with the official embedded church logo, church name, assembly, donor details, exact USD amount, giving type, UTC confirmation date, receipt reference and processor reference. Open the downloaded file and click Print / Save as PDF to create a PDF using the browser print dialog. No automatic email delivery or direct PDF file generation was added. Monthly hosted giving remains unchanged.
 
-Set the verified church details in your environment:
+Church details supplied by the owner are now the receipt defaults:
+6030 Highway 85, Suite 206
+Riverdale, GA 30274
+850-712-8760 / 850-417-3107
+
+Optional environment overrides:
 - CHURCH_RECEIPT_ADDRESS: official church street/city/state/postcode address; newlines supported.
 - CHURCH_RECEIPT_CONTACTS: official phone numbers, separated with / or commas.
 - CHURCH_RECEIPT_EMAIL: official public contact email, if desired.
 
-These fields are public and are printed on receipts. They are not bank credentials. The project did not contain verified address/phone details, so defaults are blank; never substitute invented details. On Vercel select the website deployment's environment and redeploy after changing variables. On a local machine set .env.local and restart.
+These fields are public and are printed on receipts. They are not bank credentials. Defaults use the owner-confirmed address and phone numbers above. On Vercel select the website deployment's environment and redeploy after changing variables. On a local machine set .env.local and restart.
 
-Preview: open docs/Receipt-Preview.html. It is clearly labeled a test/design preview, with placeholders for contact details, and is not a real transaction receipt. Actual test payments also remain visibly marked No real money / not a real donation receipt. Live receipts state only a payment acknowledgment and do not claim tax deductibility.
+Preview: open docs/Receipt-Preview.html. It is clearly labeled a test/design preview, with the owner-confirmed contact details, and is not a real transaction receipt. Actual test payments also remain visibly marked No real money / not a real donation receipt. Live receipts state only a payment acknowledgment and do not claim tax deductibility.
 
 Apply this full project's source into the existing checkout, preserving private environment files, database and dependency setup. Do not nest a second Ezracash directory. Changes: src/lib/payments/donation-receipt.ts; src/lib/payments/providers.ts; src/app/page.tsx; src/app/api/payments/stripe/status/route.ts; src/app/api/payments/paypal/status/route.ts; src/components/PayPalSandboxCheckout.tsx; .env.example; package.json; new receipt tests. The previous popup files and working login are included.
 
@@ -20,3 +25,5 @@ Validation: receipt checks cover exact cents, embedded logo, church contact form
 The earlier webhook rejection showed Webhook not configured. The user reports finishing that setup; successful event redelivery and database confirmation have not been verified by the assistant. This design does not bypass confirmation or mark pending gifts complete.
 
 Rollback: revert receipt/UI source changes and rebuild, preserving the working login, existing environment secrets, and all donation records.
+
+Popup refinement: official logo/brand header, green success treatment, soft status gradients, amount card, clearer primary/secondary buttons, compact mobile spacing, visible keyboard focus, and reduced-motion support. Payment verification rules remain unchanged.
