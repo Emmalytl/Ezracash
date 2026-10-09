@@ -213,15 +213,15 @@ export default function Home() {
               <button onClick={() => openGive()}>Find your way to give <ArrowUpRight size={18}/></button>
               <small>One-time gifts · Monthly giving</small>
             </aside>
-          <div className={styles.purposeOrb} aria-hidden="true">
-            <div className={styles.orbitRing}>
+          <button type="button" className={styles.purposeOrb} onClick={() => openGive()} aria-label="Give with purpose — open Give Now">
+            <span className={styles.orbitRing} aria-hidden="true">
               <svg className={styles.circularMarquee} viewBox="0 0 350 350" focusable="false">
                 <defs><path id="giving-orbit" d="M 175 9 A 166 166 0 1 1 174.99 9" /></defs>
                 <text textLength="1030" lengthAdjust="spacing"><textPath href="#giving-orbit">GIVE • SERVE • BUILD • REACH • GROW • GIVE • SERVE • BUILD • REACH • GROW • </textPath></text>
               </svg>
-            </div>
-            <div className={styles.orbCore}><small>HOUSE OF EZRA</small><strong>GIVE<br />WITH<br /><em>PURPOSE</em></strong><span>✦</span></div>
-          </div>
+            </span>
+            <span className={styles.orbCore} aria-hidden="true"><small>HOUSE OF EZRA</small><strong>GIVE<br />WITH<br /><em>PURPOSE</em></strong><span>✦</span></span>
+          </button>
           </div>
 
 </div>

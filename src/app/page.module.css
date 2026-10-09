@@ -309,3 +309,8 @@
 @media(max-width:600px){.paymentContent{padding:26px 20px}.paymentContent h2{font-size:29px}.paymentContent .paymentTop .modalKicker{font-size:8px;margin-right:0}.paymentContent :global(.stripe-checkout){padding:15px}.paymentContent .checkoutSummary strong{font-size:23px}}
 
 .zelleDetails{display:grid;gap:12px;margin:18px 0}.zelleDetails div{padding:12px;background:#fff;border:1px solid #dce6df;border-radius:10px}.zelleDetails dt{font-size:11px;color:#64776d;margin-bottom:5px}.zelleDetails dd{font-size:14px;font-weight:600;color:#254e46;overflow-wrap:anywhere;margin:0;user-select:text}.zellePanel .zelleFootnote{font-size:11px;margin:16px 0 0;line-height:1.6}
+
+/* The entire circular marquee is an accessible Give Now button. */
+.purposeOrb{border:0;padding:0;background:transparent;color:inherit;font:inherit;cursor:pointer;border-radius:50%;-webkit-tap-highlight-color:transparent}
+.purposeOrb:focus-visible{outline:3px solid #f1c15b;outline-offset:24px}
+.purposeOrb:hover .orbCore{border-color:#f1c15b;box-shadow:0 0 30px #e0aa3925}
