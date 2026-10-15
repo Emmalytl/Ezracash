@@ -5,7 +5,7 @@ import { useEffect, useState, useRef } from "react";
 import dynamic from "next/dynamic";
 import styles from "./page.module.css";
 import GivingSelector from "../components/GivingSelector";
-import { Heart, ArrowUpRight, Sprout, Church, ChevronDown, CreditCard } from "lucide-react";
+import { Heart, ArrowUpRight, Sprout, Church, Check, CreditCard } from "lucide-react";
 import type { Campaign } from "../lib/data";
 
 import { downloadDonationReceipt } from "../lib/payments/donation-receipt";
@@ -329,22 +329,24 @@ return (
                 </div>
                 <h2>Payment method</h2>
                 <div className={styles.checkoutSummary}><span><b>{selected?.title || "House of Ezra"}</b><small>{frequency} gift · USD</small></span><strong>{money(amount || 0)}</strong></div>
-                <div className={styles.paymentMethodField}>
-                  <label htmlFor="payment-method">How would you like to give?</label>
-                  <div className={styles.paymentSelectWrap}>
-                    <CreditCard size={20} aria-hidden="true" />
-                    <select id="payment-method" value={paymentMethod} disabled={paymentLoading || paymentComplete || checkoutBusy || methodLocked} onChange={event => {
-                      const method = event.target.value;
-                      setPaymentMethod(method); setPaymentError(""); setCopyMessage("");
-                    }}>
-                      <option value="Card">Card · Apple Pay / Google Pay</option>
-                      <option value="PayPal">PayPal</option>
-                      <option value="Cash App">Cash App</option>
-                      <option value="Zelle">Zelle · Bank transfer</option>
-                    </select>
-                    <ChevronDown size={18} aria-hidden="true" />
+                <fieldset className={styles.paymentChoices} disabled={paymentLoading || paymentComplete || checkoutBusy || methodLocked}>
+                  <legend>How would you like to pay?</legend>
+                  <div className={styles.paymentTiles}>
+                    {([
+                      {name:"Card",note:"Apple / Google Pay",logo:null,brand:styles.cardLogo},
+                      {name:"PayPal",note:"PayPal account",logo:"paypal",brand:styles.paypalLogo},
+                      {name:"Cash App",note:"Send with Cash App",logo:"cashapp",brand:styles.cashAppLogo},
+                      {name:"Zelle",note:"Bank transfer",logo:"zelle",brand:styles.zelleLogo},
+                    ]).map(method=><label key={method.name} className={styles.paymentTile}>
+                      <input type="radio" name="payment-method" value={method.name} checked={paymentMethod===method.name} aria-label={method.name} onChange={()=>{setPaymentMethod(method.name);setPaymentError("");setCopyMessage("");}}/>
+                      <span className={styles.paymentTileSurface}>
+                        <span className={styles.paymentTileCheck} aria-hidden="true"><Check size={11}/></span>
+                        <span className={`${styles.paymentLogo} ${method.brand}`} aria-hidden="true">{method.logo?<img src={`/branding/payments/${method.logo}.svg`} alt="" width={28} height={28}/>:<CreditCard size={26} strokeWidth={1.6}/>}</span>
+                        <strong>{method.name}</strong><small>{method.note}</small>
+                      </span>
+                    </label>)}
                   </div>
-                </div>
+                </fieldset>
                 {paymentMethod === "Card" || paymentMethod === "PayPal" ? (
                   providerConfig?.paypal?.configured && providerConfig.paypal.clientId ?
                   <PayPalCheckout key={paymentMethod} clientId={providerConfig.paypal.clientId} mode={providerConfig.paypal.mode} applePay={providerConfig.paypal.applePay} googlePay={providerConfig.paypal.googlePay} method={paymentMethod as "Card"|"PayPal"} gift={{amount,donation_type:givingType,campaign_id:givingCampaignId||null,donor_name:donorName||"Anonymous",donor_email:donorEmail,frequency}} onBusyChange={onCheckoutBusy} onSubmitted={()=>setMethodLocked(true)} onFailure={setCardFailure} onResult={(gift,token)=>{setConfirmedGift(gift);setReceiptToken(token);setPaymentComplete(true);}} /> :

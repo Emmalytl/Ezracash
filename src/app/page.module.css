@@ -324,3 +324,22 @@
 .paymentModal .paymentMethodField{margin-bottom:20px}.paymentModal .paymentMethodField>label{font-size:11px;line-height:1.5;margin-bottom:8px;font-weight:600;color:#526c62}.paymentModal .paymentMethodField select{height:50px;border-radius:12px;font-size:14px;font-weight:500;border-color:#d9e2dc;box-shadow:0 1px 3px #143d2e03}.paymentModal .paymentMethodField select:focus-visible{outline:3px solid #315c4f18;outline-offset:1px;border-color:#517a6d}
 @media(max-width:600px){.paymentModal{max-height:calc(100dvh - 24px);border-radius:22px}.paymentModal .paymentContent{padding:26px 20px 20px}.paymentModal .paymentContent h2{font-size:25px}.paymentModal .paymentTop{margin-bottom:20px}.paymentModal .checkoutSummary{padding:14px}.paymentModal .checkoutSummary strong{font-size:26px}.paymentModal .paymentMethodField select{font-size:13px}}
 @media(max-width:360px){.paymentModal .paymentContent{padding-right:15px;padding-left:15px}.paymentModal .paymentTop .modalKicker{font-size:7px;letter-spacing:.08em}}
+
+/* Native radio tiles retain keyboard selection and payment-lock behavior. */
+.paymentChoices{display:block;min-width:0;margin:0 0 22px;padding:0;border:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.paymentChoices legend{display:block;width:100%;padding:0;margin:0 0 11px;font-size:12px;line-height:1.5;font-weight:600;color:#435e54}
+.paymentTiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.paymentTile{display:block;position:relative;min-width:0;cursor:pointer;margin:0;padding:0}
+.paymentTile>input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;z-index:1;cursor:pointer}
+.paymentTileSurface{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:122px;width:100%;padding:17px 7px 13px;background:#fff;border:1px solid #e0e6e1;border-radius:14px;color:#4b625b;transition:background .15s,border-color .15s,box-shadow .15s;box-shadow:0 2px 5px #183d2e03}
+.paymentTileSurface strong{font-family:inherit;font-size:12px;font-weight:650;line-height:1.4;color:#284e42;white-space:nowrap}
+.paymentTileSurface small{font-family:inherit;font-size:9px;font-weight:400;line-height:1.5;color:#8a9a90;text-align:center;overflow-wrap:anywhere}
+.paymentLogo{display:grid;place-items:center;flex-shrink:0;width:36px;height:36px;margin-bottom:2px;border-radius:10px}.paymentLogo img{display:block;width:24px;height:24px;object-fit:contain}.cardLogo{background:#edf2ee;color:#3c6858}.paypalLogo{background:#f0f5fd}.cashAppLogo{background:#00c244}.zelleLogo{background:#f4eefb}.cashAppLogo img{width:23px;height:23px}
+.paymentTileCheck{position:absolute;top:9px;right:9px;width:16px;height:16px;border:1px solid #dfe7e0;border-radius:50%;display:grid;place-items:center;background:#fff;color:transparent}
+.paymentTile>input:checked+.paymentTileSurface{background:#f0f6f1;border-color:#3a6a55;box-shadow:0 0 0 1px #3a6a55,0 3px 10px #294e3810}
+.paymentTile>input:checked+.paymentTileSurface .paymentTileCheck{background:#315f4d;border-color:#315f4d;color:#fff}
+.paymentTile>input:focus-visible+.paymentTileSurface{outline:3px solid #c3a15c;outline-offset:4px}
+.paymentTile:hover>input:not(:disabled)+.paymentTileSurface{border-color:#779b86;background:#f8faf6}
+.paymentChoices:disabled .paymentTile>input{cursor:not-allowed}.paymentChoices:disabled .paymentTileSurface{opacity:.62;cursor:not-allowed}
+@media(max-width:520px){.paymentTiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.paymentTileSurface{min-height:106px;padding:13px 8px 11px;gap:5px}.paymentTileSurface strong{font-size:12px}.paymentTileSurface small{font-size:10px}.paymentLogo{width:33px;height:33px}.paymentChoices{margin-bottom:20px}}
+@media(prefers-reduced-motion:reduce){.paymentTileSurface{transition:none}}
