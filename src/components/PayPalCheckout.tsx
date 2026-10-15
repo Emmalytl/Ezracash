@@ -1,5 +1,7 @@
 'use client';
 import { useEffect, useId, useRef, useState } from 'react';
+import { ArrowRight, CreditCard, LockKeyhole, RotateCcw, ShieldCheck } from 'lucide-react';
+import styles from './PayPalCheckout.module.css';
 
 type Gift={amount:number;donation_type:string;campaign_id:string|null;donor_name:string;donor_email:string;frequency:string};
 type Props={clientId:string;mode:string;applePay:boolean;googlePay:boolean;method:'Card'|'PayPal';gift:Gift;onBusyChange:(busy:boolean)=>void;onSubmitted:()=>void;onResult:(result:any,token:string)=>void;onFailure:(message:string)=>void};
@@ -39,9 +41,9 @@ export default function PayPalCheckout(props:Props){
    if(props.method==='PayPal'){
     const buttons=sdk.Buttons({...handlers,fundingSource:sdk.FUNDING.PAYPAL,style:{layout:'vertical',shape:'pill',height:48}});cleanup.push(buttons);if(buttons.isEligible())await buttons.render('#'+prefix+'-buttons');else setError('PayPal is unavailable in this browser.');
    }else{
-    const card=sdk.CardFields({...handlers,style:{input:{'font-size':'16px',color:'#193b55'}}});fields.current=card;cleanup.push(card);
+    const card=sdk.CardFields({...handlers,style:{input:{'font-size':'16px','font-family':'Arial, sans-serif','font-weight':'400',color:'#183e4d',background:'transparent',border:'0','border-radius':'0','box-shadow':'none',height:'54px',padding:'0 14px'},'.invalid':{color:'#a53737'},':focus':{color:'#183e4d'}}});fields.current=card;cleanup.push(card);
     if(card.isEligible()){
-     await Promise.all([card.NameField().render('#'+prefix+'-name'),card.NumberField().render('#'+prefix+'-number'),card.ExpiryField().render('#'+prefix+'-expiry'),card.CVVField().render('#'+prefix+'-cvv')]);if(!stopped)setCardReady(true);
+     await Promise.all([card.NameField({placeholder:'Name as shown on your card'}).render('#'+prefix+'-name'),card.NumberField({placeholder:'Card number'}).render('#'+prefix+'-number'),card.ExpiryField({placeholder:'MM / YY'}).render('#'+prefix+'-expiry'),card.CVVField({placeholder:'CVV'}).render('#'+prefix+'-cvv')]);if(!stopped)setCardReady(true);
     }else setMessage('Direct card entry is unavailable for this account or browser. Choose PayPal to see available checkout options.');
     // Wallets are shown only when both merchant and device eligibility pass.
     if(props.googlePay)void(async()=>{
@@ -65,19 +67,29 @@ export default function PayPalCheckout(props:Props){
      };setAppleReady(true);
     })().catch(()=>{});
    }
-   if(!stopped)setMessage('Your payment details are handled securely by PayPal. Wallet buttons appear on eligible devices.');
+   if(!stopped)setMessage('Your card details are encrypted and handled securely by PayPal.');
   }).catch(e=>{if(!stopped)setError(e.message);});
   return()=>{stopped=true;latest.current.onBusyChange(false);for(const item of cleanup){try{void Promise.resolve(item.close?.()).catch(()=>{});}catch{}}document.getElementById(prefix+'-google')?.replaceChildren();};
  },[props.clientId,props.mode,props.method,props.applePay,props.googlePay,prefix]);
- return <section className="stripe-checkout" aria-label="Secure PayPal checkout" ref={root}>
-  {props.mode==='sandbox'&&<p role="status">TEST MODE · No real money</p>}
-  <p aria-live="polite">{message}</p>
+ return <section className={styles.checkout} aria-label="Secure PayPal checkout" ref={root}>
+  {props.mode==='sandbox'&&<div className={styles.testNotice} role="status"><span className={styles.testPill}>TEST MODE</span><span>No real money will be collected.</span></div>}
+  <header className={styles.heading}><span className={styles.headingIcon}><CreditCard size={20} aria-hidden="true"/></span><div><h3>{props.method==='Card'?'Card details':'Pay with PayPal'}</h3><span>Secure checkout</span></div><ShieldCheck size={19} className={styles.verifiedIcon} aria-hidden="true"/></header>
+  <p className={styles.message} aria-live="polite">{message}</p>
   {props.method==='Card'&&<>
-   <div style={{display:'flex',gap:12,flexWrap:'wrap',marginBottom:16}}><div id={prefix+'-google'}/>{appleReady&&<button type="button" disabled={busy} aria-label="Donate with Apple Pay" onClick={()=>appleAction.current()} style={{WebkitAppearance:'-apple-pay-button' as any,background:'black',color:'white',border:0,borderRadius:8,width:160,height:44}}>Apple Pay</button>}</div>
-   <div hidden={!cardReady}><label>Cardholder name<div id={prefix+'-name'} style={{height:50}}/></label><label>Card number<div id={prefix+'-number'} style={{height:50}}/></label><div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}><label>Expiry<div id={prefix+'-expiry'} style={{height:50}}/></label><label>Security code<div id={prefix+'-cvv'} style={{height:50}}/></label></div><button type="button" className="primary-button" disabled={busy} onClick={()=>{working(true);void fields.current.submit().catch(()=>failure('Please check your card details and try again.'));}}>{busy?'Processing…':`Donate $${props.gift.amount.toFixed(2)}`}</button></div>
+   <div className={styles.wallets}><div id={prefix+'-google'}/>{appleReady&&<button type="button" disabled={busy} className={styles.appleButton} aria-label="Donate with Apple Pay" onClick={()=>appleAction.current()}>Apple Pay</button>}</div>
+   {/* Explicit blocks reserve space for the provider-owned iframes; labels cannot overlap them. */}
+   <div className={styles.cardForm} hidden={!cardReady}>
+    <div className={styles.field}><span id={prefix+'-name-label'} className={styles.label}>Cardholder name <small>Optional</small></span><div className={styles.hostedField} role="group" aria-labelledby={prefix+'-name-label'} id={prefix+'-name'}/></div>
+    <div className={styles.field}><span id={prefix+'-number-label'} className={styles.label}>Card number</span><div className={styles.hostedField} role="group" aria-labelledby={prefix+'-number-label'} id={prefix+'-number'}/></div>
+    <div className={styles.fieldRow}>
+     <div className={styles.field}><span id={prefix+'-expiry-label'} className={styles.label}>Expiry date</span><div className={styles.hostedField} role="group" aria-labelledby={prefix+'-expiry-label'} id={prefix+'-expiry'}/></div>
+     <div className={styles.field}><span id={prefix+'-cvv-label'} className={styles.label}>Security code</span><div className={styles.hostedField} role="group" aria-labelledby={prefix+'-cvv-label'} id={prefix+'-cvv'}/></div>
+    </div>
+    <button type="button" className={styles.donateButton} disabled={busy} onClick={()=>{working(true);void fields.current.submit().catch(()=>failure('Please check your card details and try again.'));}}><LockKeyhole size={17} aria-hidden="true"/><span>{busy?'Processing securely…':`Donate $${props.gift.amount.toFixed(2)}`}</span>{busy?<span className={styles.spinner} aria-hidden="true"/>:<ArrowRight size={19} aria-hidden="true"/>}</button>
+   </div>
   </>}
-  <div id={prefix+'-buttons'}/>
-  {error&&<p role="alert" className="payment-error">{error}</p>}
-  <button type="button" className="secondary-button" disabled={busy} onClick={async()=>{const token=receipt.current||sessionStorage.getItem('ezra-paypal-receipt');if(!token){setMessage('Complete checkout first to check confirmation.');return;}working(true);try{const r=await fetch('/api/payments/paypal/status',{headers:{Authorization:`Bearer ${token}`},cache:'no-store'});const data=await r.json();if(!r.ok)throw new Error(data.error);latest.current.onResult(data,token);}catch(e){setError(e instanceof Error?e.message:'Could not check confirmation.');}finally{working(false);}}}>Check previous payment</button>
+  <div className={styles.paypalButtons} id={prefix+'-buttons'}/>
+  {error&&<p role="alert" className={styles.error}>{error}</p>}
+  <div className={styles.footer}><p><LockKeyhole size={13} aria-hidden="true"/>Your card details are never stored by House of Ezra.</p><button type="button" className={styles.recoveryButton} disabled={busy} onClick={async()=>{const token=receipt.current||sessionStorage.getItem('ezra-paypal-receipt');if(!token){setMessage('Complete checkout first to check confirmation.');return;}working(true);try{const r=await fetch('/api/payments/paypal/status',{headers:{Authorization:`Bearer ${token}`},cache:'no-store'});const data=await r.json();if(!r.ok)throw new Error(data.error);latest.current.onResult(data,token);}catch(e){setError(e instanceof Error?e.message:'Could not check confirmation.');}finally{working(false);}}}><RotateCcw size={13} aria-hidden="true"/>Check a previous payment</button></div>
  </section>;
 }

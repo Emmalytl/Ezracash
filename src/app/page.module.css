@@ -314,3 +314,13 @@
 .purposeOrb{border:0;padding:0;background:transparent;color:inherit;font:inherit;cursor:pointer;border-radius:50%;-webkit-tap-highlight-color:transparent}
 .purposeOrb:focus-visible{outline:3px solid #f1c15b;outline-offset:24px}
 .purposeOrb:hover .orbCore{border-color:#f1c15b;box-shadow:0 0 30px #e0aa3925}
+
+/* Payment-only layout: keep the existing landing page and giving form intact. */
+.paymentModal{width:min(600px,100%);max-height:calc(100dvh - 40px);border:1px solid #ffffffa3;box-shadow:0 28px 90px #071f3652;scrollbar-width:thin;scrollbar-color:#c5d0c9 transparent;overscroll-behavior:contain}
+.paymentModal .paymentContent{padding:30px 32px 28px;background:linear-gradient(150deg,#f9faf7,#fdfdfb 55%)}
+.paymentModal .paymentContent h2{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:28px;line-height:1.2;font-weight:650;letter-spacing:-.9px;margin:0 0 20px;color:#193e4c}
+.paymentModal .paymentTop{margin-bottom:22px;padding-right:32px;align-items:center;gap:12px}.paymentModal .backButton{font-size:11px;color:#71837c}.paymentModal .modalKicker{font-size:8px;letter-spacing:.16em;color:#87968d}
+.paymentModal .checkoutSummary{margin-bottom:22px;padding:17px 18px;border:1px solid #dde7e0;border-radius:14px;background:#eff4f0}.paymentModal .checkoutSummary strong{font-size:29px;letter-spacing:-.8px;font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-weight:650}.paymentModal .checkoutSummary b{font-size:12px}.paymentModal .checkoutSummary small{font-size:10px}
+.paymentModal .paymentMethodField{margin-bottom:20px}.paymentModal .paymentMethodField>label{font-size:11px;line-height:1.5;margin-bottom:8px;font-weight:600;color:#526c62}.paymentModal .paymentMethodField select{height:50px;border-radius:12px;font-size:14px;font-weight:500;border-color:#d9e2dc;box-shadow:0 1px 3px #143d2e03}.paymentModal .paymentMethodField select:focus-visible{outline:3px solid #315c4f18;outline-offset:1px;border-color:#517a6d}
+@media(max-width:600px){.paymentModal{max-height:calc(100dvh - 24px);border-radius:22px}.paymentModal .paymentContent{padding:26px 20px 20px}.paymentModal .paymentContent h2{font-size:25px}.paymentModal .paymentTop{margin-bottom:20px}.paymentModal .checkoutSummary{padding:14px}.paymentModal .checkoutSummary strong{font-size:26px}.paymentModal .paymentMethodField select{font-size:13px}}
+@media(max-width:360px){.paymentModal .paymentContent{padding-right:15px;padding-left:15px}.paymentModal .paymentTop .modalKicker{font-size:7px;letter-spacing:.08em}}

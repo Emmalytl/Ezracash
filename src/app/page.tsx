@@ -135,6 +135,8 @@ export default function Home() {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     dialogRef.current?.focus();
+    // A new modal step starts at the top instead of retaining the form scroll position.
+    if (dialogRef.current) dialogRef.current.scrollTop = 0;
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") { event.preventDefault(); if (!checkoutBusyRef.current) setModal(null); return; }
       if (event.key !== "Tab") return;
@@ -287,7 +289,7 @@ return (
 
       {modal && (
         <div className={styles.modalBackdrop} onMouseDown={(e) => { if (e.target === e.currentTarget && !checkoutBusyRef.current) setModal(null); }}>
-          <div ref={dialogRef} tabIndex={-1} className={styles.modal} role="dialog" aria-modal="true" aria-label={modal === "give" ? "Give now" : modal === "payment" ? "Payment" : selected.title}>
+          <div ref={dialogRef} tabIndex={-1} className={`${styles.modal} ${modal === "payment" ? styles.paymentModal : ""}`} role="dialog" aria-modal="true" aria-label={modal === "give" ? "Give now" : modal === "payment" ? "Payment" : selected.title}>
             <button className={styles.closeButton} disabled={checkoutBusy} onClick={() => setModal(null)} aria-label="Close">×</button>
             {modal === "payment" && (paymentComplete || cardFailure) ? (
               <DonationResult status={cardFailure ? "failed" : confirmedGift?.status === "completed" ? "success" : confirmedGift?.status === "failed" ? "failed" : confirmedGift?.status === "refunded" ? "refunded" : "pending"} amount={money(Number(confirmedGift?.amount ?? amount))} testMode={confirmedGift?.mode === "sandbox"} error={cardFailure || confirmationError} onClose={()=>setModal(null)} onCheck={receiptToken?()=>{setCardFailure("");setPaymentComplete(true);void checkConfirmation();}:undefined} onReceipt={confirmedGift?.status === "completed" ? downloadReceipt : undefined} onRetry={cardFailure ? ()=>{setCardFailure("");setMethodLocked(false);} : undefined} />
