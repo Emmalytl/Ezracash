@@ -1,8 +1,13 @@
-Replace the four matching files by copying src into the existing repository. Commit and push; wait for Vercel Ready. No database reset is required.
+Ezracash login fix — 2026-10-15
 
-Card-only secure Stripe field replaces the extra Stripe payment menu. Main choices are Card, PayPal, Cash App; the latter two are disabled until connected. Amount, email and campaign validation occur before entering checkout. Escape closes the modal.
+This is a ONE-FILE patch for GitHub main commit 64f83ba9bfc839a469fbd7eb293f35db44734f52, not the full application.
 
-LIVE SETUP (performed privately in your own dashboards):
-Set STRIPE_SECRET_KEY to the live key from the intended receiving account, and NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY to the matching live publishable key. Configure a live Stripe webhook destination https://ezracash.vercel.app/api/payments/stripe/webhook for payment_intent.succeeded, payment_intent.payment_failed, payment_intent.canceled. Set its signing secret as STRIPE_WEBHOOK_SECRET in Vercel Production. Redeploy after saving all variables. Confirm Stripe account activation and payout details. Existing test records are not deleted by this patch.
+Replace ONLY src/app/admin/page.tsx with the file at that exact path in this archive. Do not put this code into src/app/admin/staff/page.tsx. Leave the existing signin-card.module.css and all payment files unchanged.
 
-No live charge, payout or authenticated admin verification has been performed.
+In GitHub, open src/app/admin/page.tsx, click the pencil, replace the entire contents with this file, and commit to main. The existing Vercel project should start a fresh build from that commit.
+
+Cause verified in GitHub main: the public /admin login file contained a protected staff dashboard guard. Signed-out visitors were redirected back to /admin, causing HTTP 307 instead of 200. The patch restores the known working login form and role-specific post-login navigation. It changes no payment integration, database, account, environment setting or protected dashboard guard.
+
+Validation: npm run build on commit 64f83ba plus this one file passed production compilation, type checks and all 7 actual-server admin route checks. git diff --check passed. A separate review by the same assistant confirmed only src/app/admin/page.tsx changed. No independent-agent or browser/sign-in credential test was performed. Nothing was pushed or deployed.
+
+Rollback: restore the original file from commit 64f83ba (this reintroduces the known redirect defect). Keep your existing data and environment variables.
