@@ -1,0 +1,18 @@
+HOUSE OF EZRA GIVING — ADMIN REDIRECT LOOP FIX V16
+
+What changed:
+- /admin NEVER performs a server-side redirect based on an existing cookie/session.
+- /admin is always the single sign-in page.
+- Successful POST /api/auth/login still routes the browser by role:
+  Developer -> /admin/developer
+  Administrator -> /admin/administrator
+  Staff -> /admin/staff/dashboard
+- No database setup/reset is required.
+- Existing users, campaigns, donations, and finance data are untouched.
+
+Deployment:
+Replace the project files with this build, commit/push to GitHub, and deploy with Vercel.
+Then open https://ezracash.vercel.app/admin.
+
+If an old authenticated session exists, /admin will still display the login page rather than
+redirecting, which prevents a server-side redirect loop.

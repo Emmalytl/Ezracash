@@ -1,0 +1,373 @@
+"use client";
+
+import Image from "next/image";
+import { useEffect, useState, useRef } from "react";
+import dynamic from "next/dynamic";
+import styles from "./page.module.css";
+import GivingSelector from "../components/GivingSelector";
+import { Heart, ArrowUpRight, Sprout, Church, ChevronDown, CreditCard } from "lucide-react";
+import type { Campaign } from "../lib/data";
+
+import { downloadDonationReceipt } from "../lib/payments/donation-receipt";
+const DonationResult = dynamic(() => import("../components/DonationResult"));
+const PayPalCheckout = dynamic(() => import("../components/PayPalCheckout"), { ssr: false });
+
+
+
+
+const money = (n: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(n);
+
+
+const progress = (c: Campaign) => c.goal > 0 ? Math.min(100, Math.max(0, Math.round(c.amount / c.goal * 100))) : 0;
+type Modal = "give" | "campaign" | "payment" | null;
+
+export default function Home() {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const [modal, setModal] = useState<Modal>(null);
+  const [campaignsData, setCampaignsData] = useState<Campaign[]>([]);
+  const [selected, setSelected] = useState<Campaign>({id:'0',title:'General Offering',category:'GIVING',amount:0,goal:0,image:'',description:'Support the work of House of Ezra.',status:'active'});
+  const [amount, setAmount] = useState(100);
+  const [customAmount, setCustomAmount] = useState("");
+  const [recurringConsent, setRecurringConsent] = useState(false);
+  const [frequency, setFrequency] = useState("One-time");
+  useEffect(() => { setRecurringConsent(false); }, [amount, selected.id]);
+  const [providerConfig, setProviderConfig] = useState<any>(null);
+  useEffect(() => { fetch('/api/payments/config', {cache:'no-store'}).then(r => { if (!r.ok) throw new Error(); return r.json(); }).then(setProviderConfig).catch(() => setProviderConfig(null)); }, []);
+  const [paymentMethod, setPaymentMethod] = useState("Card");
+  const [methodLocked, setMethodLocked] = useState(false);
+  const [copyMessage, setCopyMessage] = useState("");
+  const [donorName, setDonorName] = useState("");
+  const [donorEmail, setDonorEmail] = useState("");
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [checkoutBusy, setCheckoutBusy] = useState(false);
+  const checkoutBusyRef = useRef(false);
+  const onCheckoutBusy = (busy: boolean) => { checkoutBusyRef.current = busy; setCheckoutBusy(busy); };
+  const [paymentError, setPaymentError] = useState("");
+  const [receiptToken, setReceiptToken] = useState("");
+  const [confirmedGift, setConfirmedGift] = useState<any>(null);
+  const [confirmationError, setConfirmationError] = useState("");
+  const [campaignError, setCampaignError] = useState("");
+  const [paymentComplete, setPaymentComplete] = useState(false);
+  const [cardFailure, setCardFailure] = useState("");
+
+  useEffect(() => {
+    const loadCampaigns = async () => {
+      try {
+        const response = await fetch("/api/campaigns", {cache:"no-store"});
+        if (!response.ok) throw new Error("Fundraising information is temporarily unavailable. You can still give a general offering.");
+        const rows: Campaign[] = await response.json();
+        if (!Array.isArray(rows)) throw new Error("Could not load fundraising information.");
+        setCampaignError(""); setCampaignsData(rows);
+        setSelected(prev => rows.find(c => c.id === prev.id) || (['tithe','0','offering','campaign-gift'].includes(prev.id) ? prev : {id:'0',title:'General Offering',category:'GIVING',amount:0,goal:0,image:'',description:'Support the work of House of Ezra.',status:'active'}));
+      } catch (error) { setCampaignError(error instanceof Error ? error.message : "Could not load fundraising information."); }
+    };
+    loadCampaigns();
+    const timer = window.setInterval(loadCampaigns, 30000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const scrollHome = () => window.scrollTo({ top: 0, behavior: "smooth" });
+  const scrollToFundraising = () => document.getElementById("fundraising")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const openCampaign = (campaign: Campaign) => { setSelected(campaign); setModal("campaign"); };
+  const openGive = (campaign?: Campaign) => { setCardFailure(""); setMethodLocked(false); setCopyMessage(""); setPaymentMethod("Card"); if (campaign) setSelected(campaign); setPaymentError(""); setPaymentComplete(false); setConfirmedGift(null); setReceiptToken(""); setRecurringConsent(false); setModal("give"); };
+
+  const givingType = selected.id === "tithe" ? "tithe" : selected.id === "0" ? "general" : selected.id === "offering" ? "offering" : "campaign";
+  const givingCampaignId = givingType === "campaign" && selected.id !== "campaign-gift" ? selected.id : "";
+
+  const validateGift = () => {
+    if (!Number.isFinite(amount) || amount < 0.5 || amount > 999999.99 || Math.abs(amount * 100 - Math.round(amount * 100)) > 0.00001) return "Enter an amount from $0.50 to $999,999.99 with no more than two decimal places.";
+    if (givingType === "campaign" && !givingCampaignId) return "Choose a campaign before continuing.";
+    if (frequency === "Monthly" && !donorEmail.trim()) return "An email is required to manage your monthly giving.";
+    if (donorEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(donorEmail)) return "Enter a valid email address or leave it blank.";
+    return "";
+  };
+  const continueToPayment = () => {
+    const error = validateGift(); setPaymentError(error); if (error) return;
+    if (frequency === "Monthly") { if (!recurringConsent) { setPaymentError("Please agree to the monthly giving terms."); return; } void startMonthlyGiving(); return; }
+    setModal("payment");
+  };
+
+  async function startMonthlyGiving() {
+    setPaymentLoading(true); setPaymentError('');
+    try {
+      const response=await fetch('/api/payments/paypal/subscription',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amount,donation_type:givingType,campaign_id:givingCampaignId||null,donor_name:donorName||'Anonymous',donor_email:donorEmail,recurring_consent:recurringConsent})});
+      const data=await response.json(); if(!response.ok) throw new Error(data.error||'Could not start monthly giving.');
+      if(typeof data.url!=='string'||!['www.paypal.com','www.sandbox.paypal.com'].includes(new URL(data.url).hostname)||new URL(data.url).protocol!=='https:') throw new Error('Invalid checkout destination.');
+      window.location.assign(data.url);
+    } catch(error) { setPaymentError(error instanceof Error?error.message:'Could not start monthly giving.'); setPaymentLoading(false); }
+  }
+
+  async function checkConfirmation() {
+    try {
+      const response = await fetch('/api/payments/paypal/status', {headers:{Authorization:`Bearer ${receiptToken}`},cache:'no-store'});
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Could not verify your gift.');
+      setConfirmedGift(data); setConfirmationError('');
+    } catch (error) { setConfirmationError(error instanceof Error ? error.message : 'Could not verify your gift.'); }
+  }
+  useEffect(() => {
+    if (!paymentComplete || !receiptToken) return;
+    let stopped = false, timer: ReturnType<typeof setTimeout>, attempts = 0;
+    const poll = async () => {
+      try {
+        const response = await fetch('/api/payments/paypal/status', {headers:{Authorization:`Bearer ${receiptToken}`},cache:'no-store'});
+        const data = await response.json(); if (stopped) return;
+        if (!response.ok) throw new Error(data.error || 'Could not verify your gift.');
+        setConfirmedGift(data); setConfirmationError('');
+        if (['completed','refunded','failed'].includes(data.status)) return;
+      } catch (error) { if (!stopped) setConfirmationError(error instanceof Error ? error.message : 'Could not verify your gift.'); }
+      if (!stopped && ++attempts < 20) timer = setTimeout(poll, 3000);
+    };
+    void poll(); return () => { stopped = true; clearTimeout(timer); };
+  }, [paymentComplete,receiptToken]);
+  async function downloadReceipt() {
+    if (confirmedGift?.status !== 'completed') return;
+    try {
+      await downloadDonationReceipt(confirmedGift,providerConfig?.receiptChurch || {name:'House of Ezra Worldwide Ministries',assembly:'Jehovah Adonai Assembly',address:'6030 Highway 85, Suite 206\nRiverdale, GA 30274',contacts:'850-712-8760 / 850-417-3107'},confirmedGift?.mode === 'sandbox');
+      setConfirmationError('');
+    } catch (error) { setConfirmationError(error instanceof Error ? error.message : 'Could not download your receipt. Please try again.'); }
+  }
+
+  // Keep keyboard focus inside the dialog and restore it when the dialog closes.
+  useEffect(() => {
+    if (!modal) return;
+    const previous = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    dialogRef.current?.focus();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") { event.preventDefault(); if (!checkoutBusyRef.current) setModal(null); return; }
+      if (event.key !== "Tab") return;
+      const nodes = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), input, select, a[href], iframe, [tabindex="0"]') || []).filter(node => node.getClientRects().length);
+      const first = nodes[0], last = nodes[nodes.length - 1];
+      if (!first) { event.preventDefault(); return; }
+      if (event.shiftKey && (document.activeElement === first || document.activeElement === dialogRef.current)) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && (document.activeElement === last || document.activeElement === dialogRef.current)) { event.preventDefault(); first.focus(); }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => { document.body.style.overflow = previousOverflow; document.removeEventListener("keydown", onKey); previous?.focus(); };
+  }, [modal]);
+
+  // Feature missions separately; the grid keeps each remaining campaign once.
+  const featuredCampaign = campaignsData.find(c => c.status === "active" && c.category.toUpperCase() === "MISSIONS")
+    || campaignsData.find(c => c.status === "active" && c.category.toUpperCase() !== "BUILDING" && c.image && !c.image.includes("church-auditorium"));
+  const gridCampaigns = campaignsData.filter(c => c.id !== featuredCampaign?.id);
+
+  return (
+    <main className={styles.page}>
+      <header className={styles.header}>
+        <div className={`${styles.shell} ${styles.headerInner}`}>
+          <button className={styles.logoButton} onClick={scrollHome} aria-label="Go to home">
+            <Image src="/branding/house-of-ezra-logo-transparent.png" alt="House of Ezra Worldwide Ministries — Jehovah Adonai Assembly" width={596} height={445} className={styles.logoImage} priority sizes="(max-width: 640px) 132px, 190px" />
+          </button>
+          <nav className={styles.nav} aria-label="Main navigation">
+            <button className={styles.navActive} onClick={scrollHome}>Home</button>
+            <button onClick={scrollToFundraising}>Our Fundraising</button>
+            <button className={styles.giveLink} onClick={() => openGive()}>Give Now</button>
+          </nav>
+        </div>
+      </header>
+
+      <section className={styles.hero}>
+        <div className={styles.heroPhoto} />
+        <div className={styles.heroOverlay} />
+        <div className={`${styles.shell} ${styles.heroContent}`}>
+          <div className={styles.heroCopy}>
+<h2 className={styles.heroBrandTitle}>HOUSE OF EZRA GIVING</h2>
+<div className={styles.heroMarquee}>
+  <div className={styles.heroMarqueeTrack}>
+    <span>HOUSE OF EZRA GIVING</span><b>✦</b><span>GIVE WITH PURPOSE</span><b>✦</b><span>SUPPORT THE WORK OF GOD</span><b>✦</b>
+    <span>HOUSE OF EZRA GIVING</span><b>✦</b><span>GIVE WITH PURPOSE</span><b>✦</b><span>SUPPORT THE WORK OF GOD</span><b>✦</b>
+  </div>
+</div>
+<h1>A generous heart.<br /><span>A lasting impact.</span></h1>
+<p>Give with purpose. Help us share the Gospel, care for our neighbours, and build a welcoming home for the next generation.</p>
+            <div className={styles.heroActions}>
+              <button className={styles.goldButton} onClick={() => openGive()}>Give Now <span>→</span></button>
+              <button className={styles.outlineButton} onClick={scrollToFundraising}>Explore Our Fundraising</button>
+            </div>
+          </div>
+          <div className={styles.heroVisuals}>
+            <aside className={styles.heroInvitation}>
+              <span className={styles.invitationIcon}><Heart size={25} strokeWidth={1.5}/></span>
+              <div className={styles.eyebrow}>FAITH IN ACTION</div>
+              <h2>Small acts of generosity.<br />Meaningful change.</h2>
+              <p>Choose a cause close to your heart, or support the ministry with a tithe or offering.</p>
+              <button onClick={() => openGive()}>Find your way to give <ArrowUpRight size={18}/></button>
+              <small>One-time gifts · Monthly giving</small>
+            </aside>
+          <button type="button" className={styles.purposeOrb} onClick={() => openGive()} aria-label="Give with purpose — open Give Now">
+            <span className={styles.orbitRing} aria-hidden="true">
+              <svg className={styles.circularMarquee} viewBox="0 0 350 350" focusable="false">
+                <defs><path id="giving-orbit" d="M 175 9 A 166 166 0 1 1 174.99 9" /></defs>
+                <text textLength="1030" lengthAdjust="spacing"><textPath href="#giving-orbit">GIVE • SERVE • BUILD • REACH • GROW • GIVE • SERVE • BUILD • REACH • GROW • </textPath></text>
+              </svg>
+            </span>
+            <span className={styles.orbCore} aria-hidden="true"><small>HOUSE OF EZRA</small><strong>GIVE<br />WITH<br /><em>PURPOSE</em></strong><span>✦</span></span>
+          </button>
+          </div>
+
+</div>
+</section>
+
+<section className={styles.purposeStrip} aria-label="Your giving makes a difference"><div className={`${styles.shell} ${styles.purposeGrid}`}>
+  <div><Church size={24}/><span><strong>Build a home for ministry</strong><small>A welcoming place to worship and grow.</small></span></div>
+  <div><Heart size={24}/><span><strong>Care for our community</strong><small>Compassion that reaches beyond our walls.</small></span></div>
+  <div><Sprout size={24}/><span><strong>Invest in the next generation</strong><small>Help young people grow in faith.</small></span></div>
+</div></section>
+      {featuredCampaign && <section className={styles.featuredWrap} aria-label="Featured campaign">
+        <div className={styles.shell}>
+          <article className={styles.featured}>
+            <div className={styles.featuredImage} style={{backgroundImage:`url(${featuredCampaign.image})`}}>
+              <span className={styles.featuredTag}>FEATURED CAMPAIGN</span>
+            </div>
+            <div className={styles.featuredContent}>
+              <div className={styles.smallLabel}>{featuredCampaign.category}</div>
+              <h2>{featuredCampaign.title}</h2>
+              <p>{featuredCampaign.description}</p>
+              <div className={styles.featureProgress}>
+                <div className={styles.featureNumbers}><strong>{money(featuredCampaign.amount)} <small>raised of {money(featuredCampaign.goal)}</small></strong><span>{progress(featuredCampaign)}%</span></div>
+                <div className={styles.progressLine}><span style={{width:`${progress(featuredCampaign)}%`}}/></div>
+              </div>
+              <button className={styles.goldButton} onClick={()=>openCampaign(featuredCampaign)}>View Campaign <span>→</span></button>
+            </div>
+          </article>
+        </div>
+      </section>}
+
+      <section className={styles.campaigns} id="fundraising">
+        <div className={styles.shell}>
+          <div className={styles.sectionHead}>
+            <div><div className={styles.sectionLabel}>OUR FUNDRAISING</div><h2>Make a Difference</h2></div>
+            <span className={styles.sectionHint}>Choose a campaign to see details and give.</span>
+          </div>
+          {campaignsData.length === 0 && <p>{campaignError || "There are no campaigns to display right now. You can still give a general offering."}</p>}
+          <div className={`${styles.campaignGrid} ${gridCampaigns.length === 4 ? styles.fourCampaigns : ""}`}>
+            {gridCampaigns.map((campaign) => {
+const percent = progress(campaign);
+return (
+  <button className={styles.campaignCard} key={campaign.id} onClick={() => openCampaign(campaign)}>
+    <div className={styles.cardImage} style={{ backgroundImage: `url(${campaign.image || "/branding/church-auditorium-banner.webp"})` }} />
+    <div className={styles.cardBody}>
+      <div className={styles.cardLabel}>{campaign.category}</div>
+      <h3>{campaign.title}</h3><p className={styles.cardDescription}>{campaign.description}</p>
+                    <div className={styles.cardMoney}><strong>{money(campaign.amount)}</strong> of {money(campaign.goal)}</div>
+                    <div className={styles.cardProgress}><span style={{ width: `${percent}%` }} /></div>
+                    <div className={styles.cardBottom}><span>View Details</span><b>→</b></div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.trust}>
+        <div className={`${styles.shell} ${styles.trustGrid}`}>
+          <div className={styles.trustItem}><span className={styles.trustIcon}>✓</span><div><strong>Secure Giving</strong><small>Your information is protected.</small></div></div>
+          <div className={styles.trustItem}><span className={styles.trustIcon}>↻</span><div><strong>Give with Purpose</strong><small>Support the ministry with a one-time or monthly gift.</small></div></div>
+          <div className={styles.trustItem}><span className={styles.trustIcon}>▤</span><div><strong>Digital Receipts</strong><small>Keep a record of your giving.</small></div></div>
+        </div>
+      </section>
+
+      <footer className={styles.footer}>
+        <div className={`${styles.shell} ${styles.footerInner}`}>
+          <Image src="/branding/house-of-ezra-logo-transparent.png" alt="House of Ezra" width={596} height={445} className={styles.footerLogo} sizes="180px" />
+          <div className={styles.footerContact}><strong>6030 Highway 85, Suite 206</strong><span>Riverdale, GA 30274</span></div>
+          <div className={styles.footerContact}><strong>850-712-8760</strong><span>850-417-3107</span></div>
+          <div className={styles.footerTagline}><h3>House of Ezra</h3><span>The place where Jesus lives</span></div>
+        </div>
+      </footer>
+
+      <nav className={styles.mobileAppNav} aria-label="Mobile navigation">
+        <button type="button" onClick={scrollHome}><span>⌂</span>Home</button>
+        <button type="button" onClick={scrollToFundraising}><span>▤</span>Fundraising</button>
+        <button type="button" onClick={() => openGive()}><span>＋</span>Give</button>
+      </nav>
+
+      {modal && (
+        <div className={styles.modalBackdrop} onMouseDown={(e) => { if (e.target === e.currentTarget && !checkoutBusyRef.current) setModal(null); }}>
+          <div ref={dialogRef} tabIndex={-1} className={styles.modal} role="dialog" aria-modal="true" aria-label={modal === "give" ? "Give now" : modal === "payment" ? "Payment" : selected.title}>
+            <button className={styles.closeButton} disabled={checkoutBusy} onClick={() => setModal(null)} aria-label="Close">×</button>
+            {modal === "payment" && (paymentComplete || cardFailure) ? (
+              <DonationResult status={cardFailure ? "failed" : confirmedGift?.status === "completed" ? "success" : confirmedGift?.status === "failed" ? "failed" : confirmedGift?.status === "refunded" ? "refunded" : "pending"} amount={money(Number(confirmedGift?.amount ?? amount))} testMode={confirmedGift?.mode === "sandbox"} error={cardFailure || confirmationError} onClose={()=>setModal(null)} onCheck={receiptToken?()=>{setCardFailure("");setPaymentComplete(true);void checkConfirmation();}:undefined} onReceipt={confirmedGift?.status === "completed" ? downloadReceipt : undefined} onRetry={cardFailure ? ()=>{setCardFailure("");setMethodLocked(false);} : undefined} />
+            ) : modal === "campaign" ? (
+              <>
+                <div className={styles.modalImage} style={{ backgroundImage: `url(${selected.image})` }} />
+                <div className={styles.modalContent}>
+                  <div className={styles.cardLabel}>{selected.category}</div>
+                  <h2>{selected.title}</h2>
+                  <p>{selected.description}</p>
+<div className={styles.modalStats}><div><strong>{money(selected.amount)}</strong><span>raised</span></div><div><strong>{money(selected.goal)}</strong><span>goal</span></div><div><strong>{progress(selected)}%</strong><span>complete</span></div></div>
+<div className={styles.progressLine}><span style={{ width: `${progress(selected)}%` }} /></div>
+                  <button className={styles.fullGoldButton} onClick={() => openGive(selected)}>Give to This Campaign <span>→</span></button>
+                </div>
+              </>
+            ) : modal === "give" ? (
+              <div className={styles.modalContent}>
+                <div className={styles.modalKicker}>HOUSE OF EZRA GIVING</div>
+<h2>Give with purpose.</h2>
+<p className={styles.modalIntro}>{selected?.title ? `Your generosity makes a difference. Choose where it goes below.` : "Choose where you would like your gift to make an impact."}</p>
+<GivingSelector campaigns={campaignsData} selected={selected} onChange={setSelected}/>
+<div className={styles.formGroup}><label htmlFor="donor-name">Donor name</label><input id="donor-name" autoComplete="name" value={donorName} onChange={e=>setDonorName(e.target.value)} placeholder="Your name (optional)" /></div>
+<div className={styles.formGroup}><label htmlFor="donor-email">{frequency === "Monthly" ? "Email for receipt (required for monthly giving)" : "Email for receipt (optional)"}</label><input id="donor-email" autoComplete="email" required={frequency === "Monthly"} type="email" value={donorEmail} onChange={e=>setDonorEmail(e.target.value)} placeholder="you@example.com" /></div>
+<div className={styles.formGroup}><label>Frequency</label><div className={styles.segmented}>{["One-time", "Monthly"].map(f => <button type="button" key={f} aria-pressed={frequency === f} className={frequency === f ? styles.segmentActive : ""} onClick={() => {setFrequency(f);setRecurringConsent(false);setPaymentError("");}}>{f}</button>)}</div></div>
+<div className={styles.formGroup}><label>Amount</label><div className={styles.amountGrid}>{[50,100,250,500].map(v => <button type="button" key={v} aria-pressed={amount === v && !customAmount} className={amount === v && !customAmount ? styles.amountActive : ""} onClick={() => { setAmount(v); setCustomAmount(""); }}>{money(v)}</button>)}</div><div className={styles.customAmount}><span>$</span><input aria-label="Other gift amount in US dollars" inputMode="decimal" placeholder="Other amount" value={customAmount} onChange={(e) => { setCustomAmount(e.target.value); setAmount(Number(e.target.value) || 0); }} /></div></div>
+{frequency === "Monthly" && <p className={styles.formNote}>Monthly gifts are approved in PayPal. Cards and digital wallets in the payment-method selector are for one-time gifts.</p>}
+{frequency === "Monthly" && <label className={styles.recurringConsent}><input type="checkbox" checked={recurringConsent} onChange={event=>setRecurringConsent(event.target.checked)}/><span>I authorise <b>{money(amount)} USD now and every month</b> until I cancel. I can manage or cancel through my PayPal account.</span></label>}
+{paymentError && <div className="payment-error" role="alert">{paymentError}</div>}
+<button className={styles.fullGoldButton} disabled={paymentLoading} onClick={continueToPayment}>{paymentLoading ? "Preparing checkout…" : frequency === "Monthly" ? "Continue to Monthly Checkout" : "Continue to Payment"} <span>→</span></button>
+<small className={styles.formNote}>Your gift is in USD. Review your details before payment.</small>
+              </div>
+            ) : (
+              <div className={`${styles.modalContent} ${styles.paymentContent}`}>
+                <div className={styles.paymentTop}>
+                  <button className={styles.backButton} disabled={paymentComplete || paymentLoading || checkoutBusy || methodLocked} type="button" onClick={() => setModal("give")}>← Back</button>
+                  <div className={styles.modalKicker}>HOUSE OF EZRA GIVING</div>
+                </div>
+                <h2>Payment method</h2>
+                <div className={styles.checkoutSummary}><span><b>{selected?.title || "House of Ezra"}</b><small>{frequency} gift · USD</small></span><strong>{money(amount || 0)}</strong></div>
+                <div className={styles.paymentMethodField}>
+                  <label htmlFor="payment-method">How would you like to give?</label>
+                  <div className={styles.paymentSelectWrap}>
+                    <CreditCard size={20} aria-hidden="true" />
+                    <select id="payment-method" value={paymentMethod} disabled={paymentLoading || paymentComplete || checkoutBusy || methodLocked} onChange={event => {
+                      const method = event.target.value;
+                      setPaymentMethod(method); setPaymentError(""); setCopyMessage("");
+                    }}>
+                      <option value="Card">Card · Apple Pay / Google Pay</option>
+                      <option value="PayPal">PayPal</option>
+                      <option value="Cash App">Cash App</option>
+                      <option value="Zelle">Zelle · Bank transfer</option>
+                    </select>
+                    <ChevronDown size={18} aria-hidden="true" />
+                  </div>
+                </div>
+                {paymentMethod === "Card" || paymentMethod === "PayPal" ? (
+                  providerConfig?.paypal?.configured && providerConfig.paypal.clientId ?
+                  <PayPalCheckout key={paymentMethod} clientId={providerConfig.paypal.clientId} mode={providerConfig.paypal.mode} applePay={providerConfig.paypal.applePay} googlePay={providerConfig.paypal.googlePay} method={paymentMethod as "Card"|"PayPal"} gift={{amount,donation_type:givingType,campaign_id:givingCampaignId||null,donor_name:donorName||"Anonymous",donor_email:donorEmail,frequency}} onBusyChange={onCheckoutBusy} onSubmitted={()=>setMethodLocked(true)} onFailure={setCardFailure} onResult={(gift,token)=>{setConfirmedGift(gift);setReceiptToken(token);setPaymentComplete(true);}} /> :
+                  <section className={styles.zellePanel}><span className={styles.paymentStatus}>Setup required</span><h3>Secure PayPal checkout</h3><p>Online payments are not connected yet. Please choose another payment method or contact the ministry.</p></section>
+                ) : (
+                  <section className={styles.zellePanel} aria-live="polite">
+                    {(()=>{const manual=paymentMethod==="Cash App"?providerConfig?.cashApp:providerConfig?.zelle;return <>
+                    <span className={styles.paymentStatus}>{!manual?.configured?"Setup required":manual.mode==="test"?"Test preview · No transfer":"Manual receipt verification"}</span>
+                    <h3>Give with {paymentMethod}</h3>
+                    {!manual?.configured?<p>The ministry’s {paymentMethod} recipient details haven’t been configured yet. Choose another payment method.</p>:manual.mode==="test"?<p>This is a preview. No recipient is displayed and no money should be sent. Test previews are excluded from donation totals.</p>:<>
+                    <p>Open {paymentMethod==="Cash App"?"Cash App":"Zelle in your banking app"}. Verify the recipient before sending <strong>{money(amount)} USD</strong>.</p>
+                    <dl className={styles.zelleDetails}><div><dt>Recipient name</dt><dd>{manual.recipientName}</dd></div><div><dt>{paymentMethod==="Cash App"?"$Cashtag":manual.recipientType==="phone"?"Phone number":"Email address"}</dt><dd>{manual.recipient}</dd></div><div><dt>Gift memo</dt><dd>{selected.title} · {donorName||"Anonymous"}</dd></div></dl>
+                    {paymentMethod==="Cash App"&&<a className={styles.fullGoldButton} href={manual.url} target="_blank" rel="noreferrer">Open Cash App →</a>}
+                    <button type="button" className={styles.backButton} onClick={async()=>{try{await navigator.clipboard.writeText(manual.recipient);setCopyMessage("Recipient copied.");}catch{setCopyMessage("Select and copy the recipient shown above.");}}}>Copy recipient</button>
+                    {copyMessage&&<p role="status">{copyMessage}</p>}
+                    <p className={styles.zelleFootnote}>Keep your transaction confirmation. The ministry records your gift only after verifying receipt. Opening the app or copying the recipient does not confirm a donation.</p>
+                    </>}</>;})()}
+                  </section>
+                )}
+
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </main>
+  );
+}

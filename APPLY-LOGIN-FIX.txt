@@ -1,0 +1,15 @@
+EZRACASH LOGIN FIX — base commit 6ce0970
+
+This ZIP contains only src/app/admin/page.tsx plus these instructions.
+
+1. In GitHub Desktop, select Ezracash and choose Repository > Show in Explorer.
+2. Copy the src folder from this ZIP into that repository folder; accept replacement of src/app/admin/page.tsx only.
+3. In GitHub Desktop, check that the changed file path is src/app/admin/page.tsx.
+4. Open that file: its first line must be "use client"; it should define AdminLogin, not import StaffDashboard or redirect.
+5. Commit this one-file correction and push, then check the new Vercel build.
+
+Do not replace src/app/admin/staff/page.tsx or the staff/dashboard page. Those protected staff pages correctly redirect signed-out users to /admin; the login page itself must not redirect to itself. Do not remove test:routes to bypass the failure.
+
+The verified GitHub 6ce0970 version mistakenly used the staff guard in the login path. This restores the previously working original login from c3108ee. Payment popup, receipts, church contact details and data remain unchanged. No environment changes or database migration are needed. Nothing was pushed/deployed by the assistant.
+
+Validation: production build and all seven signed-out route checks are reported in the delivery message. Implementation and review were by the same assistant; graphical browser and actual signed-in provider flows were not tested for this one-file fix.

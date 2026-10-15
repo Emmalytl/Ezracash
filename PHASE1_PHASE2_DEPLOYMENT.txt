@@ -1,0 +1,7 @@
+HOUSE OF EZRA GIVING - PHASE 1 + PHASE 2
+
+This package contains the Phase 1 application and Stripe Phase 2 payment implementation.
+Important: copy/merge into the existing Ezracash repository preserving the src/ directory.
+The root package.json includes @stripe/react-stripe-js and @stripe/stripe-js.
+The root tsconfig.json maps @/* to ./src/* for the Vercel build.
+Do NOT run /admin/setup and do NOT reset the Neon database.

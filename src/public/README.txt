@@ -1,0 +1,1 @@
+Public assets can be added here (church logo, icons, etc.).

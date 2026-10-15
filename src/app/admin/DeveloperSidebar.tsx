@@ -1,0 +1,6 @@
+"use client";
+import { ArrowRight, Home, LogOut, Settings, ShieldCheck, UserCog } from "lucide-react";
+export default function DeveloperSidebar({security=false}:{security?:boolean}) {
+ async function logout(){await fetch("/api/auth/logout",{method:"POST"});window.location.href="/admin";}
+ return <aside className="workspace-sidebar dev-sidebar"><a className="workspace-brand" href="/admin/developer"><img src="/branding/house-of-ezra-logo-transparent.png" alt="House of Ezra"/><span>HOUSE OF EZRA<small>DEVELOPER WORKSPACE</small></span></a><p className="workspace-nav-label">PLATFORM MANAGEMENT</p><nav aria-label="Developer navigation"><a className={security?"":"active"} href="/admin/developer" aria-current={security?undefined:"page"}><Home size={18}/>Overview</a><a href="/admin/administrator?from=developer&users=1"><UserCog size={18}/>User Management</a><a href="/admin/administrator?from=developer"><Settings size={18}/>Administration</a><a className={security?"active":""} href="/admin/security" aria-current={security?"page":undefined}><ShieldCheck size={18}/>Security & Audit</a></nav><div className="workspace-side-footer"><a href="/" target="_blank" rel="noreferrer"><ArrowRight size={17}/>View giving site</a><button onClick={logout}><LogOut size={17}/>Sign out</button></div></aside>;
+}

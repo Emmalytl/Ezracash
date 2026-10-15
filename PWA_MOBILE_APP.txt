@@ -1,0 +1,10 @@
+HOUSE OF EZRA GIVING — MOBILE APP / PWA UPDATE
+
+- Responsive mobile-app presentation added without replacing the V29 desktop design.
+- Bottom mobile navigation: Home, Fundraising, Give.
+- Safe-area support for modern iPhone/Android devices.
+- Giving and campaign modals become bottom-sheet style on mobile.
+- Web app manifest includes standalone display, portrait orientation, app icons, and theme color.
+- Service worker registered for installability and basic asset caching.
+- Mobile install prompt appears when the browser supports it. iOS users receive Add to Home Screen guidance.
+- No payment credentials or database configuration are changed.

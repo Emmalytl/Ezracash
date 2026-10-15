@@ -1,0 +1,11 @@
+Fix for the build failure on commit 582bff4
+
+Six duplicated declarations were removed from src/app/page.tsx.
+
+1. Extract the ZIP.
+2. In your GitHub Desktop repository folder, REPLACE src/app/page.tsx with the included src/app/page.tsx. Replace the whole file; do not paste it into the existing file or combine both versions.
+3. Commit the change and push main. Vercel will build the new commit.
+
+No environment variable or database changes are required.
+
+Validation: npm run build passed and all 25 existing payment regression checks passed. Monthly payment tests use mocks; no real payment was made.
