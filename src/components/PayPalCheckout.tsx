@@ -4,7 +4,7 @@ import { ArrowRight, CreditCard, LockKeyhole, RotateCcw, ShieldCheck } from 'luc
 import styles from './PayPalCheckout.module.css';
 
 type Gift={amount:number;donation_type:string;campaign_id:string|null;donor_name:string;donor_email:string;frequency:string};
-type Props={clientId:string;mode:string;applePay:boolean;googlePay:boolean;method:'Card'|'PayPal';gift:Gift;onBusyChange:(busy:boolean)=>void;onSubmitted:()=>void;onResult:(result:any,token:string)=>void;onFailure:(message:string)=>void};
+type Props={clientId:string;mode:string;applePay:boolean;googlePay:boolean;method:'Card'|'PayPal'|'Google Pay'|'Apple Pay';gift:Gift;onBusyChange:(busy:boolean)=>void;onSubmitted:()=>void;onResult:(result:any,token:string)=>void;onFailure:(message:string)=>void};
 const scripts=new Map<string,Promise<any>>();
 function script(src:string,namespace?:string){
  if(scripts.has(src))return scripts.get(src)!;
@@ -40,43 +40,48 @@ export default function PayPalCheckout(props:Props){
    const handlers={createOrder:()=>create(props.method),onApprove:(d:any)=>capture(d.orderID),onCancel:()=>{working(false);if(receipt.current)latest.current.onResult({status:'pending',amount:latest.current.gift.amount,mode:latest.current.mode},receipt.current);else setMessage('Checkout cancelled. No donation has been confirmed.');},onError:()=>failure()};
    if(props.method==='PayPal'){
     const buttons=sdk.Buttons({...handlers,fundingSource:sdk.FUNDING.PAYPAL,style:{layout:'vertical',shape:'pill',height:48}});cleanup.push(buttons);if(buttons.isEligible())await buttons.render('#'+prefix+'-buttons');else setError('PayPal is unavailable in this browser.');
-   }else{
+    if(!stopped)setMessage('Continue with PayPal to securely approve your gift.');
+   }else if(props.method==='Card'){
     const card=sdk.CardFields({...handlers,style:{input:{'font-size':'16px','font-family':'Arial, sans-serif','font-weight':'400',color:'#183e4d',background:'transparent',border:'0','border-radius':'0','box-shadow':'none',height:'54px',padding:'0 14px'},'.invalid':{color:'#a53737'},':focus':{color:'#183e4d'}}});fields.current=card;cleanup.push(card);
     if(card.isEligible()){
-     await Promise.all([card.NameField({placeholder:'Name as shown on your card'}).render('#'+prefix+'-name'),card.NumberField({placeholder:'Card number'}).render('#'+prefix+'-number'),card.ExpiryField({placeholder:'MM / YY'}).render('#'+prefix+'-expiry'),card.CVVField({placeholder:'CVV'}).render('#'+prefix+'-cvv')]);if(!stopped)setCardReady(true);
+     await Promise.all([card.NameField({placeholder:'Name as shown on your card'}).render('#'+prefix+'-name'),card.NumberField({placeholder:'Card number'}).render('#'+prefix+'-number'),card.ExpiryField({placeholder:'MM / YY'}).render('#'+prefix+'-expiry'),card.CVVField({placeholder:'CVV'}).render('#'+prefix+'-cvv')]);if(!stopped){setCardReady(true);setMessage('Enter your credit or debit card details below.');}
     }else setMessage('Direct card entry is unavailable for this account or browser. Choose PayPal to see available checkout options.');
-    // Wallets are shown only when both merchant and device eligibility pass.
-    if(props.googlePay)void(async()=>{
-     const gp=sdk.Googlepay(),config=await gp.config();if(config.isEligible===false||!config.allowedPaymentMethods?.length||stopped)return;
+   }else if(props.method==='Google Pay'){
+    // Initialize only the selected wallet; card entry stays in its own panel.
+    if(!props.googlePay){setMessage('Google Pay is not enabled yet. Please choose Card or PayPal.');return;}
+    await(async()=>{
+     const gp=sdk.Googlepay(),config=await gp.config();if(stopped)return;if(config.isEligible===false||!config.allowedPaymentMethods?.length){setMessage('Google Pay is unavailable for this merchant. Please choose Card or PayPal.');return;}
      await script('https://pay.google.com/gp/p/js/pay.js');if(stopped)return;
      const client=new (window as any).google.payments.api.PaymentsClient({environment:props.mode==='live'?'PRODUCTION':'TEST',paymentDataCallbacks:{onPaymentAuthorized:async(data:any)=>{
       try{const id=await create('Google Pay');const confirmation=await gp.confirmOrder({orderId:id,paymentMethodData:data.paymentMethodData});if(!['APPROVED','PAYER_ACTION_REQUIRED'].includes(confirmation.status))throw new Error('Wallet authorization was not completed.');if(confirmation.status==='PAYER_ACTION_REQUIRED'){const auth=await gp.initiatePayerAction({orderId:id});if(auth.liabilityShift!=='POSSIBLE')throw new Error('Authentication was not completed.');}const status=await capture(id);return status==='completed'?{transactionState:'SUCCESS'}:{transactionState:'ERROR',error:{intent:'PAYMENT_AUTHORIZATION',message:'Check payment confirmation before retrying.',reason:'OTHER_ERROR'}};}catch{failure();return {transactionState:'ERROR',error:{intent:'PAYMENT_AUTHORIZATION',message:'Payment was not confirmed. Check confirmation before retrying.',reason:'PAYMENT_DATA_INVALID'}};}
      }}});
-     const ready=await client.isReadyToPay({apiVersion:2,apiVersionMinor:0,allowedPaymentMethods:config.allowedPaymentMethods});if(!ready.result||stopped)return;
+     const ready=await client.isReadyToPay({apiVersion:2,apiVersionMinor:0,allowedPaymentMethods:config.allowedPaymentMethods});if(stopped)return;if(!ready.result){setMessage('Google Pay is unavailable on this device or browser. Please choose Card or PayPal.');return;}
      const button=client.createButton({buttonType:'donate',onClick:()=>{working(true);void client.loadPaymentData({apiVersion:2,apiVersionMinor:0,allowedPaymentMethods:config.allowedPaymentMethods,merchantInfo:config.merchantInfo,callbackIntents:['PAYMENT_AUTHORIZATION'],transactionInfo:{totalPriceStatus:'FINAL',totalPrice:latest.current.gift.amount.toFixed(2),currencyCode:'USD',countryCode:'US'}}).catch((e:any)=>{if(e.statusCode==='CANCELED')working(false);else failure();});}});
-     document.getElementById(prefix+'-google')?.appendChild(button);
-    })().catch(()=>{});
-    if(props.applePay)void(async()=>{
-     await script('https://applepay.cdn-apple.com/jsapi/1.latest/apple-pay-sdk.js');const Session=(window as any).ApplePaySession;if(!Session||!Session.canMakePayments()||stopped)return;
-     const ap=sdk.Applepay(),config=await ap.config();if(!config.isEligible||stopped)return;
+     document.getElementById(prefix+'-google')?.appendChild(button);setMessage('Use Google Pay to approve your gift with your saved payment method.');
+    })().catch(()=>{if(!stopped)setMessage('Google Pay could not load. Please choose Card or PayPal, or try again later.');});
+   }else if(props.method==='Apple Pay'){
+    if(!props.applePay){setMessage('Apple Pay is not enabled yet. Please choose Card or PayPal.');return;}
+    await(async()=>{
+     await script('https://applepay.cdn-apple.com/jsapi/1.latest/apple-pay-sdk.js');const Session=(window as any).ApplePaySession;if(stopped)return;if(!Session||!Session.canMakePayments()){setMessage('Apple Pay is unavailable on this device or browser. Please choose Card or PayPal.');return;}
+     const ap=sdk.Applepay(),config=await ap.config();if(stopped)return;if(!config.isEligible){setMessage('Apple Pay is unavailable for this merchant. Please choose Card or PayPal.');return;}
      appleAction.current=()=>{
       const session=new Session(4,{countryCode:config.countryCode,currencyCode:'USD',supportedNetworks:config.supportedNetworks,merchantCapabilities:config.merchantCapabilities,total:{label:'House of Ezra Giving',amount:latest.current.gift.amount.toFixed(2)}});working(true);
       session.onvalidatemerchant=async(event:any)=>{try{const result=await ap.validateMerchant({validationUrl:event.validationURL,displayName:'House of Ezra Giving'});session.completeMerchantValidation(result.merchantSession);}catch{session.abort();failure('Apple Pay could not validate this merchant.');}};
       session.onpaymentauthorized=async(event:any)=>{try{const id=await create('Apple Pay');await ap.confirmOrder({orderId:id,token:event.payment.token,billingContact:event.payment.billingContact});session.completePayment(Session.STATUS_SUCCESS);await capture(id);}catch{session.completePayment(Session.STATUS_FAILURE);failure();}};
       session.oncancel=()=>working(false);session.begin();
-     };setAppleReady(true);
-    })().catch(()=>{});
+     };setAppleReady(true);setMessage('Approve your gift securely with Apple Pay.');
+    })().catch(()=>{if(!stopped)setMessage('Apple Pay could not load. Please choose Card or PayPal, or try again later.');});
    }
-   if(!stopped)setMessage('Your card details are encrypted and handled securely by PayPal.');
   }).catch(e=>{if(!stopped)setError(e.message);});
   return()=>{stopped=true;latest.current.onBusyChange(false);for(const item of cleanup){try{void Promise.resolve(item.close?.()).catch(()=>{});}catch{}}document.getElementById(prefix+'-google')?.replaceChildren();};
  },[props.clientId,props.mode,props.method,props.applePay,props.googlePay,prefix]);
- return <section className={styles.checkout} aria-label="Secure PayPal checkout" ref={root}>
+ return <section className={styles.checkout} aria-label={`Secure ${props.method} checkout`} ref={root}>
   {props.mode==='sandbox'&&<div className={styles.testNotice} role="status"><span className={styles.testPill}>TEST MODE</span><span>No real money will be collected.</span></div>}
-  <header className={styles.heading}><span className={styles.headingIcon}><CreditCard size={20} aria-hidden="true"/></span><div><h3>{props.method==='Card'?'Card details':'Pay with PayPal'}</h3><span>Secure checkout</span></div><ShieldCheck size={19} className={styles.verifiedIcon} aria-hidden="true"/></header>
+  <header className={styles.heading}><span className={styles.headingIcon}>{props.method==='Card'?<CreditCard size={20} aria-hidden="true"/>:<img src={`/branding/payments/${props.method==='Google Pay'?'googlepay':props.method==='Apple Pay'?'applepay':'paypal'}.svg`} alt="" width={28} height={28}/>}</span><div><h3>{props.method==='Card'?'Card details':`Give with ${props.method}`}</h3><span>Secure checkout</span></div><ShieldCheck size={19} className={styles.verifiedIcon} aria-hidden="true"/></header>
   <p className={styles.message} aria-live="polite">{message}</p>
+  {props.method==='Google Pay'&&<div className={styles.wallets}><div id={prefix+'-google'}/></div>}
+  {props.method==='Apple Pay'&&appleReady&&<div className={styles.wallets}><button type="button" disabled={busy} className={styles.appleButton} aria-label="Donate with Apple Pay" onClick={()=>appleAction.current()}>Apple Pay</button></div>}
   {props.method==='Card'&&<>
-   <div className={styles.wallets}><div id={prefix+'-google'}/>{appleReady&&<button type="button" disabled={busy} className={styles.appleButton} aria-label="Donate with Apple Pay" onClick={()=>appleAction.current()}>Apple Pay</button>}</div>
    {/* Explicit blocks reserve space for the provider-owned iframes; labels cannot overlap them. */}
    <div className={styles.cardForm} hidden={!cardReady}>
     <div className={styles.field}><span id={prefix+'-name-label'} className={styles.label}>Cardholder name <small>Optional</small></span><div className={styles.hostedField} role="group" aria-labelledby={prefix+'-name-label'} id={prefix+'-name'}/></div>

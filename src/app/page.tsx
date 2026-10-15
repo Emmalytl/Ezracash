@@ -333,7 +333,9 @@ return (
                   <legend>How would you like to pay?</legend>
                   <div className={styles.paymentTiles}>
                     {([
-                      {name:"Card",note:"Apple / Google Pay",logo:null,brand:styles.cardLogo},
+                      {name:"Card",note:"Credit or debit",logo:null,brand:styles.cardLogo},
+                      {name:"Google Pay",note:"Google Wallet",logo:"googlepay",brand:styles.googlePayLogo},
+                      {name:"Apple Pay",note:"Apple Wallet",logo:"applepay",brand:styles.applePayLogo},
                       {name:"PayPal",note:"PayPal account",logo:"paypal",brand:styles.paypalLogo},
                       {name:"Cash App",note:"Send with Cash App",logo:"cashapp",brand:styles.cashAppLogo},
                       {name:"Zelle",note:"Bank transfer",logo:"zelle",brand:styles.zelleLogo},
@@ -347,9 +349,9 @@ return (
                     </label>)}
                   </div>
                 </fieldset>
-                {paymentMethod === "Card" || paymentMethod === "PayPal" ? (
+                {["Card", "PayPal", "Google Pay", "Apple Pay"].includes(paymentMethod) ? (
                   providerConfig?.paypal?.configured && providerConfig.paypal.clientId ?
-                  <PayPalCheckout key={paymentMethod} clientId={providerConfig.paypal.clientId} mode={providerConfig.paypal.mode} applePay={providerConfig.paypal.applePay} googlePay={providerConfig.paypal.googlePay} method={paymentMethod as "Card"|"PayPal"} gift={{amount,donation_type:givingType,campaign_id:givingCampaignId||null,donor_name:donorName||"Anonymous",donor_email:donorEmail,frequency}} onBusyChange={onCheckoutBusy} onSubmitted={()=>setMethodLocked(true)} onFailure={setCardFailure} onResult={(gift,token)=>{setConfirmedGift(gift);setReceiptToken(token);setPaymentComplete(true);}} /> :
+                  <PayPalCheckout key={paymentMethod} clientId={providerConfig.paypal.clientId} mode={providerConfig.paypal.mode} applePay={providerConfig.paypal.applePay} googlePay={providerConfig.paypal.googlePay} method={paymentMethod as "Card"|"PayPal"|"Google Pay"|"Apple Pay"} gift={{amount,donation_type:givingType,campaign_id:givingCampaignId||null,donor_name:donorName||"Anonymous",donor_email:donorEmail,frequency}} onBusyChange={onCheckoutBusy} onSubmitted={()=>setMethodLocked(true)} onFailure={setCardFailure} onResult={(gift,token)=>{setConfirmedGift(gift);setReceiptToken(token);setPaymentComplete(true);}} /> :
                   <section className={styles.zellePanel}><span className={styles.paymentStatus}>Setup required</span><h3>Secure PayPal checkout</h3><p>Online payments are not connected yet. Please choose another payment method or contact the ministry.</p></section>
                 ) : (
                   <section className={styles.zellePanel} aria-live="polite">

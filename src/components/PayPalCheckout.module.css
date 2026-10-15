@@ -4,8 +4,8 @@
 .heading{display:flex;align-items:center;gap:11px}.headingIcon{width:39px;height:39px;background:#edf4f0;border:1px solid #e0eae4;border-radius:12px;display:grid;place-items:center;color:#315b51;flex-shrink:0}
 .checkout .heading h3{font-family:inherit;font-size:16px;line-height:1.3;letter-spacing:-.25px;color:#183e4d;margin:0;font-weight:650}.heading>div>span{display:block;font-size:11px;color:#89968f;margin-top:3px}.verifiedIcon{margin-left:auto;color:#7b9b8a}
 .checkout .message{font-family:inherit;font-size:12px;line-height:1.65;margin:14px 0 22px;color:#73847e}
-.wallets{display:flex;flex-wrap:wrap;gap:10px;margin:0}.wallets:has(button){margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #edf0ec}.wallets>div:empty{display:none}.wallets>div{min-width:0;max-width:100%}
-.appleButton{appearance:-apple-pay-button;-webkit-appearance:-apple-pay-button;-apple-pay-button-type:donate;-apple-pay-button-style:black;width:160px;height:44px;border:0;border-radius:9px;background:#000;color:#fff;cursor:pointer}
+.wallets{display:flex;flex-wrap:wrap;gap:10px;margin:0}.wallets:has(button){justify-content:center;margin:8px 0 12px;padding:0}.wallets>div:empty{display:none}.wallets>div{min-width:0;max-width:100%}
+.appleButton{appearance:-apple-pay-button;-webkit-appearance:-apple-pay-button;-apple-pay-button-type:donate;-apple-pay-button-style:black;width:100%;min-width:160px;max-width:360px;height:50px;border:0;border-radius:9px;background:#000;color:#fff;cursor:pointer}
 .cardForm{display:grid;gap:17px;min-width:0}.cardForm[hidden]{display:none}.field{display:block;min-width:0;margin:0;padding:0}.label{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px;font-weight:600;line-height:1.4;color:#3c5651}.label small{font-size:10px;font-weight:400;color:#9aa7a0}.fieldRow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
 /* Host dimensions match the SDK's input height. Reserve the whole iframe box. */
 .hostedField{display:block;position:relative;width:100%;height:58px;min-height:58px;min-width:0;margin:0;padding:0;border:1px solid #dce4df;border-radius:11px;background:#fcfdfb;box-shadow:0 1px 2px #123d3103;transition:border-color .15s,box-shadow .15s}
@@ -15,3 +15,5 @@
 .spinner{width:15px;height:15px;border:2px solid #ffffff45;border-top-color:#fff;border-radius:50%;animation:turn .7s linear infinite}@keyframes turn{to{transform:rotate(360deg)}}
 @media(max-width:480px){.checkout{padding:19px 16px;border-radius:16px}.testNotice{padding:9px 10px;margin-bottom:18px;font-size:10px}.headingIcon{width:35px;height:35px}.cardForm{gap:15px}.fieldRow{gap:10px}.label{font-size:11px}.checkout .message{font-size:11px;margin:12px 0 18px}.checkout .footer p{font-size:9px}.hostedField{height:58px}.donateButton{min-height:52px}}
 @media(prefers-reduced-motion:reduce){.hostedField,.donateButton{transition:none}.spinner{animation:none}}
+
+.headingIcon img{display:block;object-fit:contain;max-width:100%}.wallets>div{width:100%}.wallets button:disabled{opacity:.6;pointer-events:none}.appleButton:focus-visible{outline:3px solid #c3a15c;outline-offset:4px}
