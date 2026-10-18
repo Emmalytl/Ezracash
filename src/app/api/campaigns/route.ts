@@ -31,7 +31,7 @@ export async function GET(request: Request) {
     return NextResponse.json(rows.map((r:any)=>({...r,id:String(r.id),image:campaignImage(r.image),description:campaignDescription(r.image,r.description),goal:Number(r.goal),amount:Number(r.amount)})));
   } catch (e: any) {
     return NextResponse.json(
-      { error: e.message === 'UNAUTHORIZED' ? 'Unauthorized' : e.message || 'Could not load campaigns.' },
+      { error: e.message === 'UNAUTHORIZED' ? 'Unauthorized' : 'Could not load campaigns.' },
       { status: e.message === 'UNAUTHORIZED' ? 401 : 500 }
     );
   }
@@ -84,6 +84,6 @@ export async function POST(request: Request) {
     if (!rows[0]) return NextResponse.json({error:'Campaign not found.'},{status:404});
     return NextResponse.json(rows[0],{status:b.action==='update'?200:201});
   } catch (e: any) {
-    return NextResponse.json({error:e.message==='UNAUTHORIZED'?'Unauthorized':e.message||'Could not save campaign.'},{status:e.message==='UNAUTHORIZED'?401:e instanceof CampaignPhotoError?400:500});
+    return NextResponse.json({error:e.message==='UNAUTHORIZED'?'Unauthorized':(e instanceof CampaignPhotoError?e.message:'Could not save campaign.')},{status:e.message==='UNAUTHORIZED'?401:e instanceof CampaignPhotoError?400:500});
   }
 }

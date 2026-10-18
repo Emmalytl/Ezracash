@@ -8,7 +8,7 @@ export async function POST(request: Request) {
     const u = await requireUser();
     await ensureSecuritySchema();
     const body = await request.json().catch(() => ({}));
-    const action = String(body.action || "user_action").slice(0, 100);
+    const action = 'client_' + String(body.action || 'user_action').replace(/[^a-zA-Z0-9_]/g,'_').slice(0, 90);
     const details = String(body.details || "").slice(0, 500);
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || null;
     const userAgent = request.headers.get("user-agent") || null;
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true });
   } catch (e: any) {
     return NextResponse.json(
-      { error: e.message || "Could not record activity." },
+      { error: "Could not record activity." },
       { status: e.message === "UNAUTHORIZED" ? 401 : 500 }
     );
   }

@@ -25,14 +25,15 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     return new NextResponse(body, {
       headers: {
         'Content-Type': row.mime_type || 'application/octet-stream',
-        'Content-Disposition': `inline; filename="${safeName}"`,
+        'Content-Disposition': `attachment; filename="${safeName}"`,
         'Cache-Control': 'private, no-store',
           'X-Content-Type-Options': 'nosniff',
+          'Content-Security-Policy': "sandbox; default-src 'none'",
       },
     });
   } catch (e: any) {
     return NextResponse.json(
-      { error: e.message === 'UNAUTHORIZED' ? 'Unauthorized' : e.message },
+      { error: e.message === 'UNAUTHORIZED' ? 'Unauthorized' : 'Request could not be completed.' },
       { status: e.message === 'UNAUTHORIZED' ? 401 : 500 }
     );
   }

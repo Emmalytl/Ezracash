@@ -1,0 +1,35 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> house-of-ezra-giving@1.0.1 test
+> node tests/payments.cjs && node tests/campaign-photos.cjs && node tests/donation-receipt.cjs
+
+✓ Public configuration hides secrets and contains no Stripe or Venmo
+✓ Live mode selects live API only with required live configuration
+✓ Invalid environments fail closed
+✓ Receipt token cannot be forged
+✓ Only supported methods and exact USD amounts pass
+✓ Wallet flags are enforced by server validation
+✓ Invalid receipt and foreign order cannot capture
+✓ Wrong amount, currency, custom reference and live merchant fail verification
+✓ Approval alone does not mark any donation paid
+✓ Sandbox capture stays outside real ledger
+✓ Live capture records once and repeated capture is idempotent
+✓ Capture mismatch and multiple captures cannot be credited
+✓ Voided order becomes failed without counting income
+✓ Signed status recovers a captured gift and hides donor email
+✓ Sandbox receipt cannot cross into live environment
+✓ Missing or invalid webhook signatures write nothing
+✓ Verified webhook fetches provider order and reconciles capture
+✓ Inactive campaign is rejected before creating a provider order
+✓ Admin connection check requires authorization and never captures
+✓ Monthly giving requires configuration and explicit consent
+✓ Monthly payment history is verified and replay cannot credit twice
+✓ Sandbox monthly payments never enter real ledger
+✓ Cash App and Zelle test previews hide real recipients and block records
+✓ Manual receipts require administrator, attestation, amount and reference
+✓ Both manual methods record atomically with audit and reject duplicates
+✓ Audit failure prevents reporting a received manual donation
+✓ Cash App recipient is bounded and cannot inject a URL
+Passed 27 payment boundary tests (mocked PayPal, auth and database).
+Passed 21 campaign-picture checks with mocked auth/database: optional URLs, multipart creation/edit, public byte round trip, invalid files, auth, missing campaigns and storage errors.
+Passed receipt formatting, embedded logo, contact details, escaping, test labeling and unconfirmed-gift guards.

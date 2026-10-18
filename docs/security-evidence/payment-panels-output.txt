@@ -1,0 +1,1 @@
+10 checkout panel cases passed: isolated payment methods, disabled wallets, merchant and device eligibility; no payment created.

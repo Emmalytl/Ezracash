@@ -1,0 +1,29 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> house-of-ezra-giving@1.0.1 test:security
+> node tests/security-regression.cjs
+
+PASS: Unknown email and wrong password share one generic response
+PASS: 10 attempts allowed, then 429 with Retry-After before credential lookup
+PASS: Login cookie uses HttpOnly, Secure, SameSite=Lax and 900-second lifetime
+PASS: Cross-origin login is rejected before credentials are checked
+PASS: Internal login exception is not returned to client
+PASS: Staff cannot read user directory or developer security data
+PASS: Staff cannot promote itself to administrator
+PASS: Administrator cannot create another administrator
+PASS: Signed-out user cannot read staff or payment configuration
+PASS: Signed-out security endpoint returns 401
+PASS: Expense endpoint rejects non-PNG bytes labeled image/png
+PASS: Staff expense is forced pending with no claimed approval
+PASS: Oversized expense receipt is rejected
+PASS: Staff cannot create a completed PayPal-labeled gift manually
+PASS: Client audit events are explicitly prefixed and cannot imitate server actions
+PASS: Receipt capability rejects tampering, extra segments and expired tokens
+PASS: Malformed or forged admin session is rejected before database access
+PASS: Correctly signed session with no active database row is denied
+PASS: Same-origin JSON login allowed; text/plain rejected; oversized body rejected
+PASS: Valid PNG receipt bytes remain accepted; invalid PDF rejected
+PASS: Legitimate offline staff entry remains available and uses one donation/audit statement
+PASS: Vercel IP budget blocks rotating account names and survives module reload
+PASS: Origin validation uses destination Host when Next normalizes internal hostname
+Security regression cases: 23; findings reproduced: 0

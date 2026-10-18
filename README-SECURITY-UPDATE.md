@@ -1,0 +1,1 @@
+Read docs/SECURITY-HARDENING-UPDATE.md before release. This complete project contains locally tested security code fixes, not a deployed release or a security guarantee. Preview with an isolated Neon database first. Preserve .git and .env.local. No payment credentials or donor data are included.

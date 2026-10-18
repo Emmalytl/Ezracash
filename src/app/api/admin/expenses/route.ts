@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { receiptBytes } from '@/lib/receipts';
+import { receiptBytes, validatedReceiptBytes } from '@/lib/receipts';
 import { requireRole } from '@/lib/auth';
 import { sqlClient } from '@/lib/db';
 
@@ -65,9 +65,10 @@ export async function GET(req: Request) {
       return new NextResponse(body, {
         headers: {
           'Content-Type': row.mime_type || 'application/octet-stream',
-          'Content-Disposition': `inline; filename="${safeName}"`,
+          'Content-Disposition': `attachment; filename="${safeName}"`,
           'Cache-Control': 'private, no-store',
           'X-Content-Type-Options': 'nosniff',
+          'Content-Security-Policy': "sandbox; default-src 'none'",
         },
       });
     }
@@ -82,7 +83,7 @@ export async function GET(req: Request) {
     return NextResponse.json(rows);
   } catch (e: any) {
     return NextResponse.json(
-      { error: e.message === 'UNAUTHORIZED' ? 'Unauthorized' : e.message },
+      { error: e.message === 'UNAUTHORIZED' ? 'Unauthorized' : 'Request could not be completed.' },
       { status: e.message === 'UNAUTHORIZED' ? 401 : 500 }
     );
   }
@@ -115,6 +116,7 @@ export async function POST(req: Request) {
 
     if (!['recorded','pending','voided'].includes(b.status || 'recorded') || (b.expense_date && !Number.isFinite(new Date(b.expense_date).getTime()))) return NextResponse.json({error:'Invalid expense status or date.'},{status:400});
 
+    let verifiedReceipt: Buffer | null = null;
     if (receiptFile) {
       if (!isAllowedReceipt(receiptFile)) {
         return NextResponse.json({ error: 'Receipt must be a PDF or an image.' }, { status: 400 });
@@ -122,6 +124,7 @@ export async function POST(req: Request) {
       if (receiptFile.size > MAX_RECEIPT_BYTES) {
         return NextResponse.json({ error: 'Receipt must be 4 MB or smaller.' }, { status: 400 });
       }
+      try { verifiedReceipt=await validatedReceiptBytes(receiptFile); } catch { return NextResponse.json({error:'The receipt contents do not match a supported PDF or image.'},{status:400}); }
     }
 
     const sql = sqlClient();
@@ -143,7 +146,7 @@ export async function POST(req: Request) {
     const expense = rows[0];
 
     if (receiptFile) {
-      const buffer = Buffer.from(await receiptFile.arrayBuffer());
+      const buffer = verifiedReceipt!;
       try {
         await sql`
           INSERT INTO expense_receipts(expense_id,filename,mime_type,file_size,file_data)
@@ -168,7 +171,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ ...expense, has_receipt: Boolean(receiptFile) });
   } catch (e: any) {
     return NextResponse.json(
-      { error: e.message === 'UNAUTHORIZED' ? 'Unauthorized' : (e.message || 'Could not save expense.') },
+      { error: e.message === 'UNAUTHORIZED' ? 'Unauthorized' : ('Could not save expense.') },
       { status: e.message === 'UNAUTHORIZED' ? 401 : 500 }
     );
   }

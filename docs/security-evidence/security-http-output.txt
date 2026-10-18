@@ -1,0 +1,1 @@
+Passed 6 built-server security scenarios: headers, cross-origin login and donation rejection, login content type, signed-webhook boundary, minimal noncached health. No database or provider calls.

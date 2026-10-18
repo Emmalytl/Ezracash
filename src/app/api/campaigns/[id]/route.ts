@@ -19,7 +19,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     await sql`INSERT INTO security_audit(action,admin_id,session_id,details) VALUES('campaign_updated',${actor.id},${actor.sessionId},${id+' · '+b.title})`;
     return NextResponse.json(rows[0]);
   } catch (e: any) {
-    return NextResponse.json({ error: e.message === 'UNAUTHORIZED' ? 'Unauthorized' : e.message || 'Could not update campaign.' }, { status: e.message === 'UNAUTHORIZED' ? 401 : 500 });
+    return NextResponse.json({ error: e.message === 'UNAUTHORIZED' ? 'Unauthorized' : 'Could not update campaign.' }, { status: e.message === 'UNAUTHORIZED' ? 401 : 500 });
   }
 }
 
@@ -34,6 +34,6 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
     await sql`INSERT INTO security_audit(action,admin_id,session_id,details) VALUES('campaign_archived',${actor.id},${actor.sessionId},${id+' · '+rows[0].title})`;
     return NextResponse.json({ ok: true });
   } catch (e: any) {
-    return NextResponse.json({ error: e.message === 'UNAUTHORIZED' ? 'Unauthorized' : e.message || 'Could not archive campaign.' }, { status: e.message === 'UNAUTHORIZED' ? 401 : 500 });
+    return NextResponse.json({ error: e.message === 'UNAUTHORIZED' ? 'Unauthorized' : 'Could not archive campaign.' }, { status: e.message === 'UNAUTHORIZED' ? 401 : 500 });
   }
 }

@@ -1,0 +1,79 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> house-of-ezra-giving@1.0.1 build
+> next build && npm run test:routes
+
+   ▲ Next.js 15.5.27
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 3.0s
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/34) ...
+   Generating static pages (8/34) 
+   Generating static pages (16/34) 
+   Generating static pages (25/34) 
+ ✓ Generating static pages (34/34)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                      Size  First Load JS
+┌ ○ /                                         20.4 kB         124 kB
+├ ○ /_not-found                                 996 B         104 kB
+├ ○ /admin                                     2.9 kB         106 kB
+├ ƒ /admin/administrator                      19.2 kB         122 kB
+├ ƒ /admin/developer                          4.97 kB         108 kB
+├ ƒ /admin/security                            4.2 kB         107 kB
+├ ○ /admin/setup                                209 B         103 kB
+├ ƒ /admin/staff                                169 B         114 kB
+├ ƒ /admin/staff/dashboard                      218 B         114 kB
+├ ƒ /api/admin/audit                            209 B         103 kB
+├ ƒ /api/admin/expense-receipts/[id]            209 B         103 kB
+├ ƒ /api/admin/expenses                         209 B         103 kB
+├ ƒ /api/admin/password                         209 B         103 kB
+├ ƒ /api/admin/payments                         209 B         103 kB
+├ ƒ /api/admin/profile                          209 B         103 kB
+├ ƒ /api/admin/security                         209 B         103 kB
+├ ƒ /api/admin/staff                            209 B         103 kB
+├ ƒ /api/auth/heartbeat                         209 B         103 kB
+├ ƒ /api/auth/login                             209 B         103 kB
+├ ƒ /api/auth/logout                            209 B         103 kB
+├ ƒ /api/auth/setup                             209 B         103 kB
+├ ƒ /api/campaign-images/[id]                   209 B         103 kB
+├ ƒ /api/campaigns                              209 B         103 kB
+├ ƒ /api/campaigns/[id]                         209 B         103 kB
+├ ƒ /api/donations                              209 B         103 kB
+├ ƒ /api/health                                 209 B         103 kB
+├ ƒ /api/payments/config                        209 B         103 kB
+├ ƒ /api/payments/paypal/capture                209 B         103 kB
+├ ƒ /api/payments/paypal/create-order           209 B         103 kB
+├ ƒ /api/payments/paypal/status                 209 B         103 kB
+├ ƒ /api/payments/paypal/subscription           209 B         103 kB
+├ ƒ /api/payments/paypal/subscription-cancel    209 B         103 kB
+├ ƒ /api/payments/paypal/subscription-status    209 B         103 kB
+├ ƒ /api/payments/paypal/webhook                209 B         103 kB
+├ ○ /apple-icon.png                               0 B            0 B
+├ ○ /campaign                                   209 B         103 kB
+├ ƒ /campaign/[id]                              209 B         103 kB
+├ ○ /create                                     209 B         103 kB
+├ ○ /give                                       209 B         103 kB
+├ ○ /giving/monthly                           1.49 kB         105 kB
+├ ○ /icon.png                                     0 B            0 B
+└ ○ /manifest.webmanifest                       209 B         103 kB
++ First Load JS shared by all                  103 kB
+  ├ chunks/1255-5cd2fe06309409a0.js           46.5 kB
+  ├ chunks/4bd1b696-f785427dddbba9fb.js       54.2 kB
+  └ other shared chunks (total)               2.53 kB
+
+
+ƒ Middleware                                  34.4 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> house-of-ezra-giving@1.0.1 test:routes
+> node tests/admin-route-smoke.cjs
+
+Passed 7 admin-route checks: login forms and all privileged signed-out redirects.
